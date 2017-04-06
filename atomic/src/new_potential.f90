@@ -20,7 +20,7 @@ subroutine new_potential &
   implicit none
   type(radial_grid_type),intent(in):: grid
   integer, intent(in) :: iflag
-  logical :: nlcc, gga, oep, meta
+  logical :: nlcc, gga, oep, meta, kli
   integer :: ndm,mesh,lsd,latt,i,is,nu, nspin, ierr
   real(DP):: rho(ndm,2),vxcp(2),vnew(ndm,2),vxt(ndm),vh(ndm), rhoc(ndm)
   real(DP):: zed,enne,rh(2),rhc, excp
@@ -30,10 +30,13 @@ subroutine new_potential &
 
   if (mesh.ne.grid%mesh) &
        call errore('new_potential','mesh dimension is not as expected',1)
-  gga=dft_is_gradient()
-  meta=dft_is_meta()
-  oep=get_iexch().eq.4
-  nspin=1
+  gga = dft_is_gradient()
+  meta = dft_is_meta()
+
+  oep = get_iexch().eq.4
+  kli = get_iexch().eq.5
+  
+  nspin = 1
   if (lsd.eq.1) nspin=2
   !
   !   compute hartree potential with the total charge
@@ -116,6 +119,11 @@ subroutine new_potential &
      end do
      deallocate(dchi0)
   end if 
+  if(kli) then
+
+  enddo
+
+
   !
   ! latter correction
   !
