@@ -170,8 +170,8 @@ MODULE ld1inc
        max_out_wfc, & ! maximum number of wavefunctions written on the
                      !   wavefunctions file.
        rel           ! 0 nonrelativistic calculation
-  ! 1 scalar relativistic calculation
-  ! 2 calculation with the full dirac equation
+                     ! 1 scalar relativistic calculation
+                     ! 2 calculation with the full dirac equation
   LOGICAL ::      &
        lsmall,    &     ! if true writes the small component on file
        relpert,   &     ! compute relativistic perturbative corrections

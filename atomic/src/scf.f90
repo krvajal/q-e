@@ -31,7 +31,7 @@ SUBROUTINE scf(ic)
   real(DP), PARAMETER :: thresh=1.0e-10_dp
   !
   !
-  meta = dft_is_meta() 
+  meta = dft_is_meta()  ! what is meta???
   ze2 = - zed * e2
   rhoc1=0.0_dp
   IF (.not.frozen_core.or.ic==1) psi=0.0_dp
@@ -45,14 +45,19 @@ SUBROUTINE scf(ic)
               is=isw(n)
               IF (isic /= 0 .and. iter > 1) vnew(:,is)=vpot(:,is)-vsic(:,n)
               IF (rel == 0) THEN
+                 ! nonrelativistic calculation
                  IF ( meta ) THEN
+                   ! Meta-GGA version of lschps
                     CALL lschps_meta (2, zed, thresh, grid, nin, nn(n), ll(n),&
                          enl(n), vnew(1,is), vtaunew, psi(1,1,n), nstop)
                  ELSE
-                    CALL ascheq (nn(n),ll(n),enl(n),grid%mesh,grid,vnew(1,is),&
+
+                    CALL ascheq (nn(n),ll(n),enl(n),grid%mesh,grid,&
+                      vnew(1,is), & ! potential
                       ze2,thresh,psi(1,1,n),nstop)
                  END IF
               ELSEIF (rel == 1) THEN
+                 ! relativistic scalar calculation
                  IF ( meta ) THEN
                     CALL lschps_meta (1, zed, thresh, grid, nin, nn(n), ll(n),&
                          enl(n), vnew(1,is), vtaunew, psi(1,1,n), nstop)

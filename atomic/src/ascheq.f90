@@ -35,7 +35,7 @@ subroutine ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   allocate(f(mesh),stat=ierr)
   allocate(el(mesh),stat=ierr)
 
-  thresh=thresh0
+  thresh = thresh0
   if (e<-5.e+2) thresh=thresh0*10.0_DP
   iter=0
   ddx12=grid%dx*grid%dx/12.0_dp
@@ -55,7 +55,7 @@ subroutine ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   if(e.gt.eup) e=0.9_DP*eup+0.1_DP*elw
   if(e.lt.elw) e=0.9_DP*elw+0.1_DP*eup
   !
-  !  series developement of the potential near the origin
+  !  series development of the potential near the origin
   !
   do i=1,4
      y(i)=vpot(i)-ze2/grid%r(i)
