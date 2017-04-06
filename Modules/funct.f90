@@ -139,6 +139,7 @@ module funct
   !              "b3lp"   B3LYP(Slater*0.80+HF*0.20)     iexch=7
   !              "kzk"    Finite-size corrections        iexch=8
   !              "x3lp"   X3LYP(Slater*0.782+HF*0.218)   iexch=9
+  !              "kli"    KLI aproximatio to OEP         iexch=10        
   !
   ! Correlation: "noc"    none                           icorr=0
   !              "pz"     Perdew-Zunger                  icorr=1 (default)
@@ -388,6 +389,9 @@ CONTAINS
     ! special cases : OEP no GC part (nor LDA...) and no correlation by default
     else IF ('OEP' .EQ. TRIM(dftout) ) THEN
        dft_defined = set_dft_values(4,0,0,0,0,0)
+
+    else if ("KLI" .EQ. TRIM(dftout)) then
+      dft_defined = set_dft_values(10,0,0,0,0,0)
 
     ! special cases : HF no GC part (nor LDA...) and no correlation by default
     else IF ('HF' .EQ. TRIM(dftout) ) THEN
