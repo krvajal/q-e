@@ -1,6 +1,8 @@
 !---------------------------------------------------------------------
 subroutine dfx_new(dchi0, vx)
 !---------------------------------------------------------------------
+! EOP calculation of the exchange potential 
+! --------------------------------------------------------------------
 #undef DEBUG 
 
    use constants, only: pi
@@ -12,7 +14,10 @@ subroutine dfx_new(dchi0, vx)
    ! 
    ! I/O variables
    !
-   real(DP) :: dchi0(ndmx,nwfx), vx(ndmx,2)
+   real(DP) :: dchi0(ndmx,nwfx)
+   real(DP),intent(out) ::  vx(ndmx,2) ! the oep exchange only potential 
+                                       ! for the two spin configurations
+
    !
    ! local variables
    ! 

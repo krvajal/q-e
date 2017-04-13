@@ -10,7 +10,7 @@ subroutine outward(y,f,g,mesh,imatch,ncross)
    ! I/O variables
    !
    integer,intent(in) :: mesh 
-   intenger, intent(in) :: imatch
+   integer, intent(in) :: imatch
    integer, intent(out) ::  ncross  ! num of axis crosses
    real(DP),intent(in) :: f(ndmx), g(ndmx)
    real (DP),intent(out) :: y(ndmx)
