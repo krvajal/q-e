@@ -139,7 +139,7 @@ subroutine ascheqps ( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
     f(1)=ddx12*(grid%r2(1)*(vpot(1)-e)+sqlhf)
 
     do n=2,mesh
-       f(n)=ddx12*(grid%r2(n)*(vpot(n)-e)+sqlhf)
+      f(n)=ddx12*(grid%r2(n)*(vpot(n)-e)+sqlhf)
       if( f(n).ne.sign(f(n),f(n-1)).and.n.lt.mesh-5 ) ik=n
     enddo
   !  if (ik.eq.0.and.nbeta.eq.0) ik=mesh*3/4

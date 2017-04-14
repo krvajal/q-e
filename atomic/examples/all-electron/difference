@@ -1,0 +1,792 @@
+diff -wib ./results/ar.out ./reference/ar.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:54 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 3 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+20,21c14
+<      Exchange-correlation      = LDA ( 1  1  0  0 0 0)
+<      mesh =1687 r(mesh) =  99.24864 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1687 r(mesh) =  99.24864 xmin = -6.00 dx = 0.00800
+25c18
+<      1 0     1S 1( 1.00)      -236.5834      -118.2917     -3218.8811
+---
+>      1 0     1S 1( 1.00)      -236.5834      -118.2917     -3218.8812
+30c23
+<      1 0     1S 2( 1.00)      -236.5834      -118.2917     -3218.8811
+---
+>      1 0     1S 2( 1.00)      -236.5834      -118.2917     -3218.8812
+36c29
+<      final scf error:  7.3E-15 reached in  40 iterations
+---
+>      eps = 6.7E-15  iter = 44
+38c31
+<      Etot =   -1056.854073 Ry,    -528.427037 Ha,  -14379.230936 eV
+---
+>      Etot =   -1056.854100 Ry,    -528.427050 Ha,  -14379.231304 eV
+41,44c34,37
+<      Ekin =    1055.678511 Ry,     527.839256 Ha,   14363.236601 eV
+<      Encl =   -2512.915861 Ry,   -1256.457931 Ha,  -34189.959054 eV
+<      Eh   =     464.001470 Ry,     232.000735 Ha,    6313.061051 eV
+<      Exc  =     -63.618193 Ry,     -31.809096 Ha,    -865.569533 eV
+---
+>      Ekin =    1055.678489 Ry,     527.839244 Ha,   14363.236297 eV
+>      Encl =   -2512.915867 Ry,   -1256.457933 Ha,  -34189.959130 eV
+>      Eh   =     464.001471 Ry,     232.000735 Ha,    6313.061064 eV
+>      Exc  =     -63.618193 Ry,     -31.809097 Ha,    -865.569535 eV
+47,48c40,41
+<      Esich=     -45.328235 Ry,     -22.664118 Ha,    -616.722002 eV
+<      Esicxc=     40.341087 Ry,      20.170543 Ha,     548.868401 eV
+---
+>      Esich=     -45.328235 Ry,     -22.664118 Ha,    -616.722003 eV
+>      Esicxc=     40.341087 Ry,      20.170544 Ha,     548.868403 eV
+51,53c44,46
+<      tot-Exc=   -58.631045 Ry,     -29.315522 Ha,    -797.715933 eV
+<      int-Exc=   -18.289958 Ry,      -9.144979 Ha,    -248.847531 eV
+<      int-Eh=    418.673235 Ry,     209.336617 Ha,    5696.339049 eV
+---
+>      tot-Exc=   -58.631045 Ry,     -29.315522 Ha,    -797.715934 eV
+>      int-Exc=   -18.289958 Ry,      -9.144979 Ha,    -248.847532 eV
+>      int-Eh=    418.673235 Ry,     209.336618 Ha,    5696.339061 eV
+diff -wib ./results/f.out ./reference/f.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:54 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 4 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = LDA ( 1  1  0  0 0 0)
+<      mesh =1601 r(mesh) =  99.76081 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1601 r(mesh) =  99.76081 xmin = -6.00 dx = 0.00800
+26c19
+<      1 0     1S 1( 1.00)       -52.7207       -26.3603      -717.3010
+---
+>      1 0     1S 1( 1.00)       -52.7206       -26.3603      -717.3008
+29c22
+<      1 0     1S 2( 1.00)       -52.6640       -26.3320      -716.5299
+---
+>      1 0     1S 2( 1.00)       -52.6640       -26.3320      -716.5297
+33c26
+<      final scf error:  3.6E-15 reached in  66 iterations
+---
+>      eps = 2.8E-15  iter = 58
+35c28
+<      Etot =    -200.174421 Ry,    -100.087210 Ha,   -2723.511503 eV
+---
+>      Etot =    -200.174383 Ry,    -100.087192 Ha,   -2723.510989 eV
+38,41c31,34
+<      Ekin =     200.023951 Ry,     100.011975 Ha,    2721.464249 eV
+<      Encl =    -479.088731 Ry,    -239.544366 Ha,   -6518.333685 eV
+<      Eh   =     100.121090 Ry,      50.060545 Ha,    1362.216708 eV
+<      Exc  =     -21.230730 Ry,     -10.615365 Ha,    -288.858775 eV
+---
+>      Ekin =     200.023981 Ry,     100.011991 Ha,    2721.464665 eV
+>      Encl =    -479.088721 Ry,    -239.544361 Ha,   -6518.333552 eV
+>      Eh   =     100.121087 Ry,      50.060543 Ha,    1362.216665 eV
+>      Exc  =     -21.230730 Ry,     -10.615365 Ha,    -288.858767 eV
+44,50c37,43
+<      Esich=     -16.844931 Ry,      -8.422465 Ha,    -229.186936 eV
+<      Esicxc=     15.058400 Ry,       7.529200 Ha,     204.879947 eV
+<      Esictot=    -1.786531 Ry,      -0.893265 Ha,     -24.306990 eV
+< 
+<      tot-Exc=   -19.444199 Ry,      -9.722100 Ha,    -264.551785 eV
+<      int-Exc=    -4.385800 Ry,      -2.192900 Ha,     -59.671839 eV
+<      int-Eh=     83.276160 Ry,      41.638080 Ha,    1133.029772 eV
+---
+>      Esich=     -16.844930 Ry,      -8.422465 Ha,    -229.186930 eV
+>      Esicxc=     15.058399 Ry,       7.529200 Ha,     204.879941 eV
+>      Esictot=    -1.786531 Ry,      -0.893265 Ha,     -24.306989 eV
+>  
+>      tot-Exc=   -19.444199 Ry,      -9.722099 Ha,    -264.551778 eV
+>      int-Exc=    -4.385799 Ry,      -2.192900 Ha,     -59.671837 eV
+>      int-Eh=     83.276157 Ry,      41.638078 Ha,    1133.029735 eV
+diff -wib ./results/fe.out ./reference/fe.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:54 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 4 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = NOX-NOC ( 0  0  0  0 0 0)
+<      mesh =1807 r(mesh) = 179.45123 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1807 r(mesh) = 179.45123 xmin = -6.00 dx = 0.00800
+46c39
+<      final scf error:  1.7E-15 reached in  75 iterations
+---
+>      eps = 6.0E-16  iter = 76
+48c41
+<      Etot =   -2510.735339 Ry,   -1255.367670 Ha,  -34160.291545 eV
+---
+>      Etot =   -2510.735341 Ry,   -1255.367671 Ha,  -34160.291574 eV
+50,51c43,44
+<      Ekin =    2547.562794 Ry,    1273.781397 Ha,   34661.354552 eV
+<      Encl =   -6026.306207 Ry,   -3013.153103 Ha,  -81992.065727 eV
+---
+>      Ekin =    2547.562793 Ry,    1273.781397 Ha,   34661.354536 eV
+>      Encl =   -6026.306208 Ry,   -3013.153104 Ha,  -81992.065739 eV
+62c55
+<      int-Eh=    968.008073 Ry,     484.004037 Ha,   13170.419630 eV
+---
+>      int-Eh=    968.008073 Ry,     484.004037 Ha,   13170.419629 eV
+diff -wib ./results/he.out ./reference/he.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:55 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 5 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+20,21c14
+<      Exchange-correlation      = PBE ( 1  4  3  4 0 0)
+<      mesh =1539 r(mesh) = 100.56988 a.u. xmin = -7.00 dx = 0.00800
+---
+>      mesh =1539 r(mesh) = 100.56988 xmin = -7.00 dx = 0.00800
+28c21
+<      final scf error:  2.8E-15 reached in  70 iterations
+---
+>      eps = 6.9E-15  iter = 73
+30c23
+<      Etot =      -5.785259 Ry,      -2.892630 Ha,     -78.712455 eV
+---
+>      Etot =      -5.785260 Ry,      -2.892630 Ha,     -78.712459 eV
+33,35c26,28
+<      Ekin =       5.731257 Ry,       2.865628 Ha,      77.977714 eV
+<      Encl =     -13.511472 Ry,      -6.755736 Ha,    -183.832926 eV
+<      Eh   =       4.113936 Ry,       2.056968 Ha,      55.972939 eV
+---
+>      Ekin =       5.731257 Ry,       2.865628 Ha,      77.977711 eV
+>      Encl =     -13.511472 Ry,      -6.755736 Ha,    -183.832928 eV
+>      Eh   =       4.113936 Ry,       2.056968 Ha,      55.972940 eV
+40c33
+<      Esicxc=      2.053608 Ry,       1.026804 Ha,      27.940760 eV
+---
+>      Esicxc=      2.053608 Ry,       1.026804 Ha,      27.940761 eV
+diff -wib ./results/cu.out ./reference/cu.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:55 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 6 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+20,21c14
+<      Exchange-correlation      = NOX-NOC ( 0  0  0  0 0 0)
+<      mesh =1747 r(mesh) =  99.55439 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1747 r(mesh) =  99.55439 xmin = -6.00 dx = 0.00800
+32c25
+<      final scf error:  5.7E-15 reached in  77 iterations
+---
+>      eps = 2.6E-15  iter = 78
+34c27
+<      Etot =   -3235.783848 Ry,   -1617.891924 Ha,  -44025.078192 eV
+---
+>      Etot =   -3235.783850 Ry,   -1617.891925 Ha,  -44025.078221 eV
+36,38c29,31
+<      Ekin =    3235.783854 Ry,    1617.891927 Ha,   44025.078276 eV
+<      Encl =   -7748.917001 Ry,   -3874.458500 Ha, -105429.377508 eV
+<      Eh   =    1364.767724 Ry,     682.383862 Ha,   18568.609203 eV
+---
+>      Ekin =    3235.783853 Ry,    1617.891927 Ha,   44025.078258 eV
+>      Encl =   -7748.917002 Ry,   -3874.458501 Ha, -105429.377520 eV
+>      Eh   =    1364.767724 Ry,     682.383862 Ha,   18568.609204 eV
+48c41
+<      int-Eh=   1277.349298 Ry,     638.674649 Ha,   17379.221040 eV
+---
+>      int-Eh=   1277.349298 Ry,     638.674649 Ha,   17379.221041 eV
+diff -wib ./results/cu1.out ./reference/cu1.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:55 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 6 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = SL1-NOC ( 2  0  0  0 0 0)
+<      mesh =1747 r(mesh) =  99.55439 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1747 r(mesh) =  99.55439 xmin = -6.00 dx = 0.00800
+44c37
+<      final scf error:  7.8E-15 reached in  29 iterations
+---
+>      eps = 7.8E-15  iter = 29
+57,58c50,51
+<      s(1S/2S) = -0.000000
+<      s(1S/3S) = -0.000000
+---
+>      s(1S/2S) =  0.000000
+>      s(1S/3S) =  0.000000
+diff -wib ./results/h.out ./reference/h.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:55 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 6 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+20,21c14
+<      Exchange-correlation      = PW91 ( 1  4  2  2 0 0)
+<      mesh =1451 r(mesh) =  99.48432 a.u. xmin = -7.00 dx = 0.00800
+---
+>      mesh =1451 r(mesh) =  99.48432 xmin = -7.00 dx = 0.00800
+27c20
+<      final scf error:  9.7E-15 reached in  82 iterations
+---
+>      eps = 7.7E-16  iter = 78
+29c22
+<      Etot =      -1.000000 Ry,      -0.500000 Ha,     -13.605692 eV
+---
+>      Etot =      -1.000000 Ry,      -0.500000 Ha,     -13.605691 eV
+32c25
+<      Encl =      -2.000000 Ry,      -1.000000 Ha,     -27.211384 eV
+---
+>      Encl =      -2.000000 Ry,      -1.000000 Ha,     -27.211383 eV
+diff -wib ./results/pt.out ./reference/pt.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:56 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 7 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = SL1-NOC ( 2  0  0  0 0 0)
+<      mesh =1871 r(mesh) =  99.81228 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =1871 r(mesh) =  99.81228 xmin = -6.00 dx = 0.00800
+65c58
+<      final scf error:  4.6E-15 reached in  28 iterations
+---
+>      eps = 4.6E-15  iter = 28
+78,82c71,75
+<      s(1S/2S) = -0.000000
+<      s(1S/3S) = -0.000000
+<      s(1S/4S) = -0.000000
+<      s(1S/5S) = -0.000000
+<      s(1S/6S) = -0.000000
+---
+>      s(1S/2S) =  0.000000
+>      s(1S/3S) =  0.000000
+>      s(1S/4S) =  0.000000
+>      s(1S/5S) =  0.000000
+>      s(1S/6S) =  0.000000
+84,87c77,80
+<      s(2S/3S) = -0.000000
+<      s(2S/4S) = -0.000000
+<      s(2S/5S) = -0.000000
+<      s(2S/6S) = -0.000000
+---
+>      s(2S/3S) =  0.000000
+>      s(2S/4S) =  0.000000
+>      s(2S/5S) =  0.000000
+>      s(2S/6S) =  0.000000
+97,98c90,91
+<      s(3S/4S) = -0.000000
+<      s(3S/5S) = -0.000000
+---
+>      s(3S/4S) =  0.000000
+>      s(3S/5S) =  0.000000
+117,118c110,111
+<      s(3D/4D) = -0.000000
+<      s(3D/5D) = -0.000000
+---
+>      s(3D/4D) =  0.000000
+>      s(3D/5D) =  0.000000
+126c119
+<      s(4D/5D) = -0.000000
+---
+>      s(4D/5D) =  0.000000
+diff -wib ./results/mg.out ./reference/mg.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:56 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 7 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = SL1-NOC ( 2  0  0  0 0 0)
+<      mesh = 645 r(mesh) =  81.05220 a.u. xmin = -6.00 dx = 0.02000
+---
+>      mesh = 645 r(mesh) =  81.05220 xmin = -6.00 dx = 0.02000
+38c31
+<      final scf error:  6.8E-15 reached in  11 iterations
+---
+>      eps = 6.8E-15  iter = 11
+diff -wib ./results/u.out ./reference/u.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:56 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47: 7 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = PBE ( 1  4  3  4 0 0)
+<      mesh =2093 r(mesh) = 499.80170 a.u. xmin = -6.00 dx = 0.00800
+---
+>      mesh =2093 r(mesh) = 499.80170 xmin = -6.00 dx = 0.00800
+27c20
+<      1 0 0.5 1S 1( 2.00)     -8579.6600     -4289.8300   -116732.2110
+---
+>      1 0 0.5 1S 1( 2.00)     -8579.6600     -4289.8300   -116732.2108
+29c22
+<      2 1 0.5 2P 1( 2.00)     -1551.8399      -775.9199    -21113.8555
+---
+>      2 1 0.5 2P 1( 2.00)     -1551.8399      -775.9199    -21113.8554
+44a38,39
+>      6 1 0.5 6P 1( 2.00)        -2.5853        -1.2926       -35.1743
+>      6 1 1.5 6P 1( 4.00)        -1.8851        -0.9425       -25.6477
+49,50d43
+<      6 1 0.5 6P 1( 2.00)        -2.5853        -1.2926       -35.1743
+<      6 1 1.5 6P 1( 4.00)        -1.8851        -0.9425       -25.6477
+57c50
+<      1 0     1S 1( 2.00)     -8579.6600     -4289.8300   -116732.2110
+---
+>      1 0     1S 1( 2.00)     -8579.6600     -4289.8300   -116732.2108
+59c52
+<      2 1     2P 1( 6.00)     -1361.7051      -680.8526    -18526.9405
+---
+>      2 1     2P 1( 6.00)     -1361.7051      -680.8526    -18526.9404
+61c54
+<      3 1     3P 1( 6.00)      -336.9187      -168.4593     -4584.0117
+---
+>      3 1     3P 1( 6.00)      -336.9187      -168.4593     -4584.0116
+63c56
+<      4 1     4P 1( 6.00)       -81.2654       -40.6327     -1105.6726
+---
+>      4 1     4P 1( 6.00)       -81.2654       -40.6327     -1105.6725
+68a62
+>      6 1     6P 1( 6.00)        -2.1185        -1.0592       -28.8232
+71d64
+<      6 1     6P 1( 6.00)        -2.1185        -1.0592       -28.8232
+76c69
+<      final scf error:  5.0E-16 reached in  70 iterations
+---
+>      eps = 1.5E-17  iter = 67
+78c71
+<      Etot =  -56237.075086 Ry,  -28118.537543 Ha, -765144.318673 eV
+---
+>      Etot =  -56237.074994 Ry,  -28118.537497 Ha, -765144.317431 eV
+80,83c73,76
+<      Ekin =   69011.908724 Ry,   34505.954362 Ha,  938954.769614 eV
+<      Encl = -145180.154660 Ry,  -72590.077330 Ha,-1975276.458692 eV
+<      Eh   =   20960.413247 Ry,   10480.206623 Ha,  285180.925365 eV
+<      Exc  =   -1029.242396 Ry,    -514.621198 Ha,  -14003.554960 eV
+---
+>      Ekin =   69011.908798 Ry,   34505.954399 Ha,  938954.770624 eV
+>      Encl = -145180.154640 Ry,  -72590.077320 Ha,-1975276.458414 eV
+>      Eh   =   20960.413243 Ry,   10480.206622 Ha,  285180.925317 eV
+>      Exc  =   -1029.242396 Ry,    -514.621198 Ha,  -14003.554958 eV
+86c79
+<      Esich=    -501.707002 Ry,    -250.853501 Ha,   -6826.070907 eV
+---
+>      Esich=    -501.707002 Ry,    -250.853501 Ha,   -6826.070906 eV
+88c81
+<      Esictot=   -71.248101 Ry,     -35.624050 Ha,    -969.379712 eV
+---
+>      Esictot=   -71.248101 Ry,     -35.624050 Ha,    -969.379711 eV
+90,92c83,85
+<      tot-Exc=  -957.994295 Ry,    -478.997147 Ha,  -13034.175248 eV
+<      int-Exc=  -527.535394 Ry,    -263.767697 Ha,   -7177.484053 eV
+<      int-Eh=  20458.706245 Ry,   10229.353122 Ha,  278354.854458 eV
+---
+>      tot-Exc=  -957.994295 Ry,    -478.997147 Ha,  -13034.175246 eV
+>      int-Exc=  -527.535394 Ry,    -263.767697 Ha,   -7177.484052 eV
+>      int-Eh=  20458.706241 Ry,   10229.353121 Ha,  278354.854411 eV
+165a159,160
+>      s(6P/6P) =  1.000000  <r> =   1.6612  <r2> =    3.1061  r(max) =   1.4773
+>      s(6P/6P) =  1.000000  <r> =   1.9063  <r2> =    4.1008  r(max) =   1.6790
+174,175d168
+<      s(6P/6P) =  1.000000  <r> =   1.6612  <r2> =    3.1061  r(max) =   1.4773
+<      s(6P/6P) =  1.000000  <r> =   1.9063  <r2> =    4.1008  r(max) =   1.6790
+diff -wib ./results/u1.out ./reference/u1.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:58 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47:11 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = SL1-NOC ( 2  0  0  0 0 0)
+<      mesh =2229 r(mesh) = 200.78033 a.u. xmin = -8.00 dx = 0.00800
+---
+>      mesh =2229 r(mesh) = 200.78033 xmin = -8.00 dx = 0.00800
+44a38,39
+>      6 1 0.5 6P 1( 2.00)        -2.2986        -1.1493       -31.2744
+>      6 1 1.5 6P 1( 4.00)        -1.6315        -0.8158       -22.1980
+49,50d43
+<      6 1 0.5 6P 1( 2.00)        -2.2986        -1.1493       -31.2744
+<      6 1 1.5 6P 1( 4.00)        -1.6315        -0.8158       -22.1980
+66a60
+>      6 1     6P 1( 6.00)        -1.8539        -0.9269       -25.2235
+69d62
+<      6 1     6P 1( 6.00)        -1.8539        -0.9269       -25.2235
+73c66
+<      final scf error:  4.6E-15 reached in  28 iterations
+---
+>      eps = 4.4E-15  iter = 28
+75c68
+<      Etot =  -56574.883801 Ry,  -28287.441901 Ha, -769740.439992 eV
+---
+>      Etot =  -56574.883801 Ry,  -28287.441901 Ha, -769740.439988 eV
+77,79c70,72
+<      Ekin =   69437.213096 Ry,   34718.606548 Ha,  944741.329877 eV
+<      Encl = -145853.865137 Ry,  -72926.932568 Ha,-1984442.755884 eV
+<      Eh   =   21217.588877 Ry,   10608.794439 Ha,  288679.977764 eV
+---
+>      Ekin =   69437.213096 Ry,   34718.606548 Ha,  944741.329883 eV
+>      Encl = -145853.865136 Ry,  -72926.932568 Ha,-1984442.755882 eV
+>      Eh   =   21217.588877 Ry,   10608.794438 Ha,  288679.977761 eV
+86,87c79,80
+<      s(1S/2S) = -0.000000
+<      s(1S/3S) = -0.000000
+---
+>      s(1S/2S) =  0.000000
+>      s(1S/3S) =  0.000000
+94c87
+<      s(2S/4S) = -0.000000
+---
+>      s(2S/4S) =  0.000000
+136c129
+<      s(3D/5D) = -0.000000
+---
+>      s(3D/5D) =  0.000000
+147c140
+<      s(4D/5D) = -0.000000
+---
+>      s(4D/5D) =  0.000000
+149a143,144
+>      s(6P/6P) =  1.000000  <r> =   1.6353  <r2> =    3.0078  r(max) =   1.4655
+>      s(6P/6P) =  1.000000  <r> =   1.8772  <r2> =    3.9722  r(max) =   1.6524
+155,157c150
+<      s(4F/5F) = -0.000000
+<      s(6P/6P) =  1.000000  <r> =   1.6353  <r2> =    3.0078  r(max) =   1.4655
+<      s(6P/6P) =  1.000000  <r> =   1.8772  <r2> =    3.9722  r(max) =   1.6524
+---
+>      s(4F/5F) =  0.000000
+diff -wib ./results/w.out ./reference/w.out
+2c2,3
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:59 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47:12 
+4,13c5,7
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+---
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+21,22c15
+<      Exchange-correlation      = SL1-NOC ( 2  0  0  0 0 0)
+<      mesh =2115 r(mesh) = 100.27685 a.u. xmin = -8.00 dx = 0.00800
+---
+>      mesh =2115 r(mesh) = 100.27685 xmin = -8.00 dx = 0.00800
+65c58
+<      final scf error:  4.1E-15 reached in  28 iterations
+---
+>      eps = 4.0E-15  iter = 28
+78,79c71,72
+<      s(1S/2S) = -0.000000
+<      s(1S/3S) = -0.000000
+---
+>      s(1S/2S) =  0.000000
+>      s(1S/3S) =  0.000000
+117,118c110,111
+<      s(3D/4D) = -0.000000
+<      s(3D/5D) = -0.000000
+---
+>      s(3D/4D) =  0.000000
+>      s(3D/5D) =  0.000000
+126c119
+<      s(4D/5D) = -0.000000
+---
+>      s(4D/5D) =  0.000000
+diff -wib ./results/ne_oep.out ./reference/ne_oep.out
+2c2,42
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:59 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47:12 
+> 
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+>      --------------------------- All-electron run ----------------------------
+> 
+>      Ne                                                                         
+> 
+>      atomic number is 10.00
+>      dft =OEP   lsd =0 sic =0 latt =0  beta=0.30 tr2=1.0E-14
+>      mesh = 401 r(mesh) =  40.34288 xmin = -4.00 dx = 0.02500
+>      1 Ry =  13.60569193 eV
+> 
+>      n l     nl                  e(Ry)          e(Ha)          e(eV)
+>      1 0     1S 1( 2.00)       -61.6397       -30.8199      -838.6511
+>      2 0     2S 1( 2.00)        -3.4362        -1.7181       -46.7524
+>      2 1     2P 1( 6.00)        -1.7014        -0.8507       -23.1488
+>  
+>      OEP WARNING: printed eigenvalues were shifted by
+>                  shift :        -0.0779        -0.0389        -1.0598
+> 
+>      eps = 7.1E-15  iter = 21
+>  
+>      Etot =    -257.090829 Ry,    -128.545414 Ha,   -3497.898617 eV
+> 
+>      Ekin =     257.091039 Ry,     128.545520 Ha,    3497.901478 eV
+>      Encl =    -622.266060 Ry,    -311.133030 Ha,   -8466.360306 eV
+>      Eh   =     132.294230 Ry,      66.147115 Ha,    1799.954541 eV
+>      Exc  =     -24.210039 Ry,     -12.105019 Ha,    -329.394331 eV
+> 
+> 
+>      normalization and overlap integrals
+> 
+>      s(1S/1S) =  1.000000  <r> =   0.1579  <r2> =    0.0336  r(max) =   0.1025
+>      s(1S/2S) =  0.000000
+>      s(2S/2S) =  1.000000  <r> =   0.8941  <r2> =    0.9712  r(max) =   0.6855
+>      s(2P/2P) =  1.000000  <r> =   0.9645  <r2> =    1.2269  r(max) =   0.6360
+> 
+>      ------------------------ End of All-electron run ------------------------
+4,15d43
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+<         3500
+<         3500
+diff -wib ./results/c_oep.out ./reference/c_oep.out
+2c2,51
+<      Program LD1 v.6.1 starts on 13Apr2017 at 23: 6:59 
+---
+>      Program LD1       v.4.0    starts ...
+>      Today is  7May2008 at 10:47:12 
+> 
+>      Parallel version (MPI)
+> 
+>      Number of processors in use:       1
+>      --------------------------- All-electron run ----------------------------
+> 
+>      C                                                                          
+> 
+>      atomic number is  6.00
+>      dft =OEP   lsd =1 sic =0 latt =0  beta=0.20 tr2=1.0E-14
+>      mesh =1437 r(mesh) =  40.29553 xmin = -6.00 dx = 0.00800
+>      1 Ry =  13.60569193 eV
+> 
+>      n l     nl                  e(Ry)          e(Ha)          e(eV)
+>      1 0     1S 1( 1.00)       -20.5291       -10.2645      -279.3122
+>      2 0     2S 1( 1.00)        -1.5168        -0.7584       -20.6373
+>      2 1     2P 1( 2.00)        -0.8705        -0.4352       -11.8434
+>      1 0     1S 2( 1.00)       -20.6833       -10.3417      -281.4109
+>      2 0     2S 2( 1.00)        -1.1645        -0.5822       -15.8437
+>      2 1     2P 2( 0.00)        -0.5586        -0.2793        -7.6000
+>  
+>      OEP WARNING: printed eigenvalues were shifted by
+>         spin 1   shift :        -0.0497        -0.0248        -0.6762
+>         spin 2   shift :        -0.0416        -0.0208        -0.5665
+> 
+>      eps = 3.0E-15  iter = 34
+>  
+>      Etot =     -75.377824 Ry,     -37.688912 Ha,   -1025.567449 eV
+>      Total magnetization:    2.00 Bohr mag. 
+> 
+>      Ekin =      75.378196 Ry,      37.689098 Ha,    1025.572508 eV
+>      Encl =    -176.283970 Ry,     -88.141985 Ha,   -2398.465384 eV
+>      Eh   =      35.620666 Ry,      17.810333 Ha,     484.643808 eV
+>      Exc  =     -10.092716 Ry,      -5.046358 Ha,    -137.318381 eV
+> 
+> 
+>      normalization and overlap integrals
+> 
+>      s(1S/1S) =  1.000000  <r> =   0.2702  <r2> =    0.0989  r(max) =   0.1749
+>      s(1S/2S) =  0.000000
+>      s(2S/2S) =  1.000000  <r> =   1.5459  <r2> =    2.8694  r(max) =   1.2120
+>      s(2P/2P) =  1.000000  <r> =   1.7063  <r2> =    3.7089  r(max) =   1.2023
+>      s(1S/1S) =  1.000000  <r> =   0.2685  <r2> =    0.0974  r(max) =   0.1749
+>      s(1S/2S) =  0.000000
+>      s(2S/2S) =  1.000000  <r> =   1.6433  <r2> =    3.2906  r(max) =   1.2414
+>      s(2P/2P) =  1.000000  <r> =   2.0071  <r2> =    5.3136  r(max) =   1.2921
+> 
+>      ------------------------ End of All-electron run ------------------------
+4,15d52
+<      This program is part of the open-source Quantum ESPRESSO suite
+<      for quantum simulation of materials; please cite
+<          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+<           URL http://www.quantum-espresso.org", 
+<      in publications or presentations arising from this work. More details at
+<      http://www.quantum-espresso.org/quote
+< 
+<      Serial version
+<      Waiting for input...
+<      Reading input from standard input
+<         3500
+<         3500

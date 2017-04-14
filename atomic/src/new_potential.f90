@@ -10,7 +10,8 @@
 subroutine new_potential &
      (ndm,mesh,grid,zed,vxt,lsd,nlcc,latt,enne,rhoc,rho,vh,vnew,iflag)
   !---------------------------------------------------------------
-  !   set up the selfconsistent atomic potential
+  !   set up the selfconsistent atomic potential 
+  !   from the density and the KS wavefunctions
   !
   use constants, only: fpi, e2
   use radial_grids, only: radial_grid_type, hartree
@@ -26,7 +27,9 @@ subroutine new_potential &
   real(DP):: zed,enne,rh(2),rhc, excp
   real(DP),allocatable:: vgc(:,:), egc(:), rhotot(:)
 !  real(DP),allocatable:: vx(:,:)
-  real(DP),allocatable:: dchi0(:,:)
+
+
+  real(DP),allocatable:: dchi0(:,:) ! 
 
   if (mesh.ne.grid%mesh) &
        call errore('new_potential','mesh dimension is not as expected',1)
@@ -54,12 +57,11 @@ subroutine new_potential &
      enddo
   endif
 
-
-
-  #ifdef DEBUG
-      print *, "Lsd", lsd 
-  #endif
-
+  print *, "Computed rho total"
+  do i =1, mesh
+    print *,rho(i,1), rho(i,2)
+  enddo
+  stop
   
   call hartree(0,2,mesh,grid,rhotot,vh)
   deallocate(rhotot)

@@ -83,8 +83,10 @@ subroutine integrate_outward (lam,jam,e,mesh,ndm,grid,f, &
   !
   !  first solve the homogeneous equation
   !
+  ! f is the original function 
+  ! of the form 1 + h^2/12 * d2Rdr2
   do n=2,ik-1
-     y(n+1)=( 12.0_DP*y(n)  - 10.0_DP* f(n)*y(n) -f(n-1)*y(n-1))/f(n+1)
+     y(n+1)=( 12.0_DP*y(n)  - 10.0_DP* f(n)*y(n) - f(n-1)*y(n-1) )/f(n+1)
   enddo
   !
   !     for each beta function with correct angular momentum

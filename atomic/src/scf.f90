@@ -51,7 +51,9 @@ SUBROUTINE scf(ic)
                     CALL lschps_meta (2, zed, thresh, grid, nin, nn(n), ll(n),&
                          enl(n), vnew(1,is), vtaunew, psi(1,1,n), nstop)
                  ELSE
-
+                    print  *, "Solving nonrelativistic nonmeta equation"
+                    print *, "angular momentum", ll
+                    print *, "nwf", nwf
                     CALL ascheq (nn(n),ll(n),enl(n),grid%mesh,grid,&
                       vnew(1,is), & ! potential
                       ze2,thresh,psi(1,1,n),nstop)
@@ -85,12 +87,14 @@ SUBROUTINE scf(ic)
      ! calculate charge density (spherical approximation)
      !
      rho=0.0_dp
+
      IF (noscf) GOTO 500
      DO n=1,nwf
         DO i=1,grid%mesh
            rho(i,isw(n))=rho(i,isw(n))+oc(n)*(psi(i,1,n)**2+psi(i,2,n)**2)
         ENDDO
      ENDDO
+
      !
      ! calculate kinetc energy density (spherical approximation)
      !
@@ -99,6 +103,10 @@ SUBROUTINE scf(ic)
      !
      ! calculate new potential
      !
+     print *,"Calculating the new potential"
+     print *,"occupation", oc
+     print *,"nwf", nwf
+     stop
      CALL new_potential ( ndmx, grid%mesh, grid, zed, vxt, &
           lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
      !
