@@ -34,22 +34,33 @@ subroutine new_potential &
   meta = dft_is_meta()
 
   oep = get_iexch().eq.4
-  kli = get_iexch().eq.5
-  
+  kli = get_iexch().eq.10
+
   nspin = 1
   if (lsd.eq.1) nspin=2
   !
   !   compute hartree potential with the total charge
   !
   allocate(rhotot(ndm),stat=ierr)
+
+  ! get total density
   do i=1,ndm
      rhotot(i)=rho(i,1)
   enddo
+ 
   if (lsd.eq.1) then
      do i=1,ndm
         rhotot(i)=rhotot(i)+rho(i,2)
      enddo
   endif
+
+
+
+  #ifdef DEBUG
+      print *, "Lsd", lsd 
+  #endif
+
+  
   call hartree(0,2,mesh,grid,rhotot,vh)
   deallocate(rhotot)
   !
@@ -106,22 +117,24 @@ subroutine new_potential &
 !     write (*,*) ndm, nwf
      allocate(dchi0(ndm,nwf))
 
-     do nu=1,nwf
+     do nu=1,nwf ! num wave functions
         call dvex(nu,dchi0(1,nu))
      end do
 
      call dfx_new(dchi0, vx)
+     ! vx contains the oep term
+
      do is=1,nspin
         do i=1,mesh
-! ADD OEP VX
+      ! ADD OEP VX
            vnew(i,is)= vnew(i,is)  + vx(i,is)
         end do
      end do
      deallocate(dchi0)
   end if 
   if(kli) then
-
-  enddo
+      stop "KLI not implemented "
+  endif
 
 
   !
