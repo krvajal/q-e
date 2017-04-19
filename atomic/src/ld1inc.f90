@@ -32,7 +32,7 @@ MODULE ld1inc
        oc(nwfx),     & ! the occupations of the all-electron atom
        zed,          & ! the ionic charge
        enne,         & ! the number of electrons
-       sl3(0:lmx2,0:lmx2,0:lmx2)
+       sl3(0:lmx2,0:lmx2,0:lmx2) ! what is this, documented somewhere?
 
   real(DP)::          &
        enl(nwfx),          & ! the energies of the all-electron atom

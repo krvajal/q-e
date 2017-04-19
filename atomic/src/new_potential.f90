@@ -10,7 +10,8 @@
 subroutine new_potential &
      (ndm,mesh,grid,zed,vxt,lsd,nlcc,latt,enne,rhoc,rho,vh,vnew,iflag)
   !---------------------------------------------------------------
-  !   set up the selfconsistent atomic potential
+  !   set up the selfconsistent atomic potential 
+  !   from the density and the KS wavefunctions
   !
   use constants, only: fpi, e2
   use radial_grids, only: radial_grid_type, hartree
@@ -26,7 +27,9 @@ subroutine new_potential &
   real(DP):: zed,enne,rh(2),rhc, excp
   real(DP),allocatable:: vgc(:,:), egc(:), rhotot(:)
 !  real(DP),allocatable:: vx(:,:)
-  real(DP),allocatable:: dchi0(:,:)
+
+
+  real(DP),allocatable:: dchi0(:,:) ! 
 
   if (mesh.ne.grid%mesh) &
        call errore('new_potential','mesh dimension is not as expected',1)
@@ -55,12 +58,6 @@ subroutine new_potential &
   endif
 
 
-
-  #ifdef DEBUG
-      print *, "Lsd", lsd 
-  #endif
-
-  
   call hartree(0,2,mesh,grid,rhotot,vh)
   deallocate(rhotot)
   !
@@ -80,6 +77,7 @@ subroutine new_potential &
         vxcp(:)=0.0_dp
         exc(i) =0.0_dp
      else
+        print *, "Computing vxc[rho]"
         call vxc_t(lsd,rh,rhc,excp,vxcp)
         exc(i)=excp
      endif
@@ -123,15 +121,12 @@ subroutine new_potential &
 
      call dfx_new(dchi0, vx)
      ! vx contains the oep term
-
-     do is=1,nspin
-        do i=1,mesh
-      ! ADD OEP VX
-           vnew(i,is)= vnew(i,is)  + vx(i,is)
-        end do
-     end do
+     ! ADD OEP VX
+     vnew(:,1:nspin)= vnew(:,1:nspin)  + vx(:,1:nspin)
+     
      deallocate(dchi0)
   end if 
+
   if(kli) then
       stop "KLI not implemented "
   endif

@@ -26,13 +26,17 @@ subroutine dfx_new(dchi0, vx)
    real(DP) :: int_0_inf_dr
    real(DP) :: vvx(ndmx,2,niterx),drhox(ndmx,2,niterx), dvh(ndmx,2,niterx), &
                     dvh0(ndmx,2), aux(ndmx), drho1(ndmx,2), dvh1(ndmx,2)
-   real(DP) :: a(niterx,niterx), inva(niterx,niterx), &
-                    b1(niterx), b2(niterx), c, c1, work(niterx), x(niterx), uno
+   real(DP) :: a(niterx,niterx), &
+               inva(niterx,niterx), & ! inverse of a, i guess
+               b1(niterx), b2(niterx), c, c1, work(niterx), x(niterx), uno
    integer :: iwork(niterx), info, iterx
    integer :: i, j, jter, k, nu, is
    real(DP) :: third, fac, capel
    logical :: first = .true.
    save first
+
+
+   
 
 !-set the left hand side of the equation
    call drho0ofvx(drho0,dchi0)
@@ -68,6 +72,7 @@ subroutine dfx_new(dchi0, vx)
    do is=1,nspin
       call hartree(0,2,grid%mesh,grid,drho1(1,is),dvh1(1,is))
    end do
+
    aux(1:grid%mesh) = drho1(1:grid%mesh,1) * dvh1(1:grid%mesh,1)
    if (nspin==2) aux(1:grid%mesh) = 2.d0 * ( aux(1:grid%mesh) + &
                                drho1(1:grid%mesh,2) * dvh1(1:grid%mesh,2) )
@@ -80,11 +85,19 @@ subroutine dfx_new(dchi0, vx)
 !- simple Thomas-Fermi approximation to \chi^-1
    third = 1.0d0/3.0d0
    fac   = -(0.75d0*pi)**(2.0d0/3.0d0)
+
    do is =1, nspin
       appchim1(1:grid%mesh,is) = fac/(grid%r(1:grid%mesh)* &
                             (nspin*rho(1:grid%mesh,is)*grid%r(1:grid%mesh))**third)
    end do
+   
+   ! print *, "Density"
 
+   ! do is = 1,grid%mesh
+         
+   !       print *, "r,rho =>>>",is,  grid%r(is),rho(is,1:nspin) 
+   ! enddo
+   ! stop
    drhox(1:grid%mesh,1:nspin,1) = drho1(1:grid%mesh,1:nspin)
 
    if (c1 < 1.d-12 ) then
@@ -95,11 +108,23 @@ subroutine dfx_new(dchi0, vx)
    do iterx =1,niterx
 !- set a new normalized correction vector vvx = chim1*drho/norm
      
+      do is = 1,grid%mesh
+         print *, "vvx =>>>",is, appchim1(is,1:nspin) 
+      enddo
+      ! stop
       vvx(1:grid%mesh,1:nspin,iterx) = appchim1(1:grid%mesh,1:nspin) * &
                                              drhox(1:grid%mesh,1:nspin,iterx)
       do is=1,nspin
          call hartree(0,2,grid%mesh,grid,vvx(1,is,iterx),dvh(1,is,iterx))
       end do
+      print *, shape(vvx)
+      do is = 1,grid%mesh
+         print *, "vvx =>>>",is, vvx(is,1,1)   
+      enddo
+      
+      stop
+
+
       aux(1:grid%mesh) =vvx(1:grid%mesh,1,iterx) * dvh(1:grid%mesh,1,iterx)
       if (nspin==2) aux(1:grid%mesh) = 2.d0 * ( aux(1:grid%mesh) +  &
                                   vvx(1:grid%mesh,2,iterx) * dvh(1:grid%mesh,2,iterx) )
@@ -107,7 +132,7 @@ subroutine dfx_new(dchi0, vx)
 #ifdef DEBUG
       write (*,*) "norm ", capel
 #endif
-      if (capel >0) then
+      if (capel > 0) then
          capel = 1.d0/sqrt(capel)
          vvx(1:grid%mesh,1:nspin,iterx) = vvx(1:grid%mesh,1:nspin,iterx) * capel
       end if
@@ -132,6 +157,10 @@ subroutine dfx_new(dchi0, vx)
          aux(1:grid%mesh) = drhox(1:grid%mesh,1,iterx) * dvh(1:grid%mesh,1,jter)
          if (nspin==2) aux(1:grid%mesh) = 2.d0 * ( aux(1:grid%mesh) + &
                                      drhox(1:grid%mesh,2,iterx)*dvh(1:grid%mesh,2,jter) )
+         print *, "iterx", iterx
+         print *, "jiter", jter
+         print *, "aux", aux
+         print *, "a(i,j)", int_0_inf_dr(aux,grid,grid%mesh,2)
          a(iterx,jter) = int_0_inf_dr(aux,grid,grid%mesh,2)
 
          aux(1:grid%mesh) = drhox(1:grid%mesh,1,jter) * dvh(1:grid%mesh,1,iterx)
@@ -140,7 +169,9 @@ subroutine dfx_new(dchi0, vx)
          a(jter,iterx) = int_0_inf_dr(aux,grid,grid%mesh,2)
 
       end do
+
       capel = 0.d0
+
       do i=1,iterx
          do j=1,iterx
             capel = capel + abs(a(i,j)-a(j,i))
@@ -148,11 +179,19 @@ subroutine dfx_new(dchi0, vx)
             a(j,i) = a(i,j)
          end do
       end do
+
+
 #ifdef DEBUG
       write (*,'(a,12f16.10)') "CAPEL a  ", capel
 #endif
   
       inva = a
+
+      print *,  "calling factorization"
+      print *, "iwork",iwork
+      print *, "iterx", iterx
+      print *, "inva", inva
+      print *, "niterx", niterx
 
       CALL DSYTRF('U', iterx, inva, niterx, iwork, work, niterx,info)
       if (info.ne.0) stop 'factorization'

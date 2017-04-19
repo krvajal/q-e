@@ -24,7 +24,7 @@ subroutine ascheqps ( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
 
   type(radial_grid_type), intent(in) :: grid
   integer, intent(in) :: &
-       nam, &
+       nam, &     
        lam, &      ! l angular momentum
        mesh,&      ! size of radial mesh
        ndm, &      ! maximum radial mesh 
@@ -109,164 +109,177 @@ subroutine ascheqps ( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
 !  write(6,*) 'entering ascheqps', vpot(mesh-20)*grid%r(mesh-20)
 
   ddx12=grid%dx*grid%dx/12.0_dp
-  l1=lam+1
-  nst=l1*2
-  sqlhf=(DBLE(lam)+0.5_dp)**2
+  l1 = lam+1
+  nst = l1*2
+  sqlhf = (DBLE(lam)+0.5_dp)**2
   !
   !  series developement of the potential near the origin
   !
   do n=1,4
      y(n)=vpot(n)
   enddo
+  ! compute taylor expansion of the potential
+  ! and store it on the array b
   call series(y,grid%r,grid%r2,b)
 
   !      write(stdout,*) 'enter lam,eup,elw,e',lam,nbeta,eup,elw,e
+
+
   !
   !  set up the f-function and determine the position of its last
+  !  what is the f-function ??
   !  change of sign
   !  f < 0 (approximatively) means classically allowed   region
   !  f > 0         "           "        "      forbidden   "
   !
+
   do iter=1,maxter
-!  write(6,*) 'starting iter', iter, elw, e, eup
-  ik=1
-  f(1)=ddx12*(grid%r2(1)*(vpot(1)-e)+sqlhf)
-  do n=2,mesh
-     f(n)=ddx12*(grid%r2(n)*(vpot(n)-e)+sqlhf)
-     if( f(n).ne.sign(f(n),f(n-1)).and.n.lt.mesh-5 ) ik=n
-  enddo
-!  if (ik.eq.0.and.nbeta.eq.0) ik=mesh*3/4
-  if (ik.eq.1.or.grid%r(ik)>4.0_DP) ik=mesh*3/4
 
-  if(ik.ge.mesh-2) then
-     do n=1,mesh
-        write(stdout,*) grid%r(n), vpot(n), f(n)
-     enddo
-     call errore('compute_solution', 'No point found for matching',1)
-  endif
-  !
-  !     determine if ik is sufficiently large
-  !
-  do ns=1,nbeta
-     if (lls(ns).eq.lam .and. jjs(ns).eq.jam .and. ikk(ns).gt.ik) ik=ikk(ns)+3
-  enddo
-  !
-  !     if everything is ok continue the integration and define f
-  !
-  do n=1,mesh
-     f(n)=1.0_dp-f(n)
-  enddo
-  !
-  !  determination of the wave-function in the first two points by
-  !  series developement
-  !
-  ! no coulomb divergence in the origin for a pseudopotential
-  ze2=0.d0 
-  call start_scheq( lam, e, b, grid, ze2, y )
-  !
-  !    outward integration before ik
-  !
-  call integrate_outward (lam,jam,e,mesh,ndm,grid,f,b,y,beta,ddd,qq,&
-       nbeta,nwfx,lls,jjs,ikk,ik)
+    ik=1
+    f(1)=ddx12*(grid%r2(1)*(vpot(1)-e)+sqlhf)
 
-  ncross=0
-  ymx=0.0_dp
-  do n=2,ik-1
-     if ( y(n) .ne. sign(y(n),y(n+1)) ) ncross=ncross+1
-     ymx=max(ymx,abs(y(n+1)))
-  end do
-!
-!  If at this point the number of nodes is wrong it means that something
-!  is probably wrong in the calling routines. A ghost might be present
-!  in the pseudopotential. With a nonlocal pseudopotential there is no
-!  node theorem so strictly speaking the following instructions are
-!  wrong but sometimes they help so we keep them here.
-!
-  if( ndcr /= ncross .and. first(nam,lam) ) then
-      write(stdout,"(/,7x,'Warning: n=',i1,', l=',i1,' expected ',i1,' nodes,',&
-        & ' found ',i1)") nam,lam,ndcr,ncross
-      write(stdout,'(7x,a,/,7x,a,/)') 'Setting wfc to zero for this iteration',&
-                    '(This warning will only be printed once per wavefunction)'
-      first(nam,lam) = .false.
-  endif
+    do n=2,mesh
+      f(n)=ddx12*(grid%r2(n)*(vpot(n)-e)+sqlhf)
+      if( f(n).ne.sign(f(n),f(n-1)).and.n.lt.mesh-5 ) ik=n
+    enddo
+  !  if (ik.eq.0.and.nbeta.eq.0) ik=mesh*3/4
+    if (ik.eq.1.or.grid%r(ik)>4.0_DP) ik=mesh*3/4
 
-  if(ndcr < ncross) then
-     !
-     !  too many crossings. e is an upper bound to the true eigenvalue.
-     !  increase abs(e)
-     !
-     eup=e
-     e=0.9_dp*elw+0.1_dp*eup
-!     write(6,*) 'too many crossing', ncross, ndcr
-!     call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
-     y=0.0_DP
-     ymx=0.0_dp
-     go to 300
-  else if (ndcr > ncross) then
-     !
-     !  too few crossings. e is a lower bound to the true eigenvalue.
-     !  decrease abs(e)
-     !
-     elw=e
-     e=0.9_dp*eup+0.1_dp*elw
-!     write(6,*) 'too few crossing', ncross, ndcr
-!     call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
-     y=0.0_DP
-     ymx=0.0_dp
-     go to 300
-  end if
-  !
-  !    inward integration up to ik
-  !
-  call integrate_inward(e,mesh,ndm,grid,f,y,c,el,ik,nstart)
-  !
-  !  if necessary, improve the trial eigenvalue by the cooley's
-  !  procedure. jw cooley math of comp 15,363(1961)
-  !
-  fe=(12.0_dp-10.0_dp*f(ik))*y(ik)-f(ik-1)*y(ik-1)-f(ik+1)*y(ik+1)
-  !
-  ! audjust the normalization if needed
-  !
-  if(ymx.ge.1.0e10_dp) y=y/ymx
-  !
-  !  calculate the normalization
-  !
-  do n1=1,nbeta
-     if (lam.eq.lls(n1).and.abs(jam-jjs(n1)).lt.1.e-7_dp) then
-        ikl=ikk(n1)
-        do n=1,ikl
-           fun(n)=beta(n,n1)*y(n)*grid%sqr(n)
-        enddo
-        work(n1)=int_0_inf_dr(fun,grid,ikl,nst)
-     else
-        work(n1)=0.0_dp
-     endif
+    if(ik.ge.mesh-2) then
+      do n=1,mesh
+         write(stdout,*) grid%r(n), vpot(n), f(n)
+      enddo
+      call errore('compute_solution', 'No point found for matching',1)
+    endif
+    !
+    !     determine if ik is sufficiently large
+    !
+    do ns=1,nbeta
+       if (lls(ns).eq.lam .and. jjs(ns).eq.jam .and. ikk(ns).gt.ik) ik=ikk(ns)+3
+    enddo
+    !
+    !     if everything is ok continue the integration and define f
+    !
+    do n=1,mesh
+       f(n)=1.0_dp-f(n)
+    enddo
+    !
+    !  determination of the wave-function in the first two points by
+    !  series developement
+    !
+    ! no coulomb divergence in the origin for a pseudopotential
+    ze2=0.d0 
+    call start_scheq( lam, e, b, grid, ze2, y )
+    !
+    !    outward integration before ik
+    !
+    call integrate_outward (lam,jam,e,mesh,ndm,grid,f,b,y,beta,ddd,qq,&
+         nbeta,nwfx,lls,jjs,ikk,ik)
+
+    ncross=0
+    ymx=0.0_dp
+    do n=2,ik-1
+       if ( y(n) .ne. sign(y(n),y(n+1)) ) ncross=ncross+1
+       ymx=max(ymx,abs(y(n+1)))
+    end do
+    !
+    !  If at this point the number of nodes is wrong it means that something
+    !  is probably wrong in the calling routines. A ghost might be present
+    !  in the pseudopotential. With a nonlocal pseudopotential there is no
+    !  node theorem so strictly speaking the following instructions are
+    !  wrong but sometimes they help so we keep them here.
+    !
+    if( ndcr /= ncross .and. first(nam,lam) ) then
+        write(stdout,"(/,7x,'Warning: n=',i1,', l=',i1,' expected ',i1,' nodes,',&
+          & ' found ',i1)") nam,lam,ndcr,ncross
+        write(stdout,'(7x,a,/,7x,a,/)') 'Setting wfc to zero for this iteration',&
+                      '(This warning will only be printed once per wavefunction)'
+        first(nam,lam) = .false.
+    endif
+
+    !-----------------
+    if(ndcr < ncross) then
+       !
+       !  too many crossings. e is an upper bound to the true eigenvalue.
+       !  increase abs(e)
+       !
+       eup=e
+       e=0.9_dp*elw+0.1_dp*eup
+  !     write(6,*) 'too many crossing', ncross, ndcr
+  !     call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
+       y=0.0_DP
+       ymx=0.0_dp
+       go to 300
+    else if (ndcr > ncross) then
+       !
+       !  too few crossings. e is a lower bound to the true eigenvalue.
+       !  decrease abs(e)
+       !
+       elw=e
+       e=0.9_dp*eup+0.1_dp*elw
+  !     write(6,*) 'too few crossing', ncross, ndcr
+  !     call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
+       y=0.0_DP
+       ymx=0.0_dp
+       go to 300
+    end if
+    !-----------------
+
+    !
+    !    inward integration up to ik
+    !
+    call integrate_inward(e,mesh,ndm,grid,f,y,c,el,ik,nstart)
+    !
+    !  if necessary, improve the trial eigenvalue by the cooley's
+    !  procedure. jw cooley math of comp 15,363(1961)
+    !
+    fe=(12.0_dp-10.0_dp*f(ik))*y(ik)-f(ik-1)*y(ik-1)-f(ik+1)*y(ik+1)
+    !
+    ! audjust the normalization if needed
+    !
+    if(ymx.ge.1.0e10_dp) y=y/ymx
+    !
+    !  calculate the normalization
+    !
+    do n1=1,nbeta
+       if (lam.eq.lls(n1).and.abs(jam-jjs(n1)).lt.1.e-7_dp) then
+          ikl=ikk(n1)
+          do n=1,ikl
+             fun(n)=beta(n,n1)*y(n)*grid%sqr(n)
+          enddo
+          work(n1)=int_0_inf_dr(fun,grid,ikl,nst)
+       else
+          work(n1)=0.0_dp
+       endif
+    enddo
+
+    do n=1,nstart
+       fun(n)= y(n)*y(n)*grid%r(n)
+    enddo
+
+    integ=int_0_inf_dr(fun,grid,nstart,nst)
+    do n1=1,nbeta
+       do n2=1,nbeta
+          integ = integ + qq(n1,n2)*work(n1)*work(n2)
+       enddo
+    enddo
+    dfe=-y(ik)*f(ik)/grid%dx/integ
+    de=-fe*dfe
+    eps=abs(de/e)
+  !  write(6,'(i5, 3f20.12)') iter, e, de
+    if(abs(de).lt.thresh) go to 600
+    if(eps.gt.0.25_dp) de=0.25_dp*de/eps
+    if(de.gt.0.0_dp) elw=e
+    if(de.lt.0.0_dp) eup=e
+    e=e+de
+    if(e.gt.eup) e=0.9_dp*eup+0.1_dp*elw
+    if(e.lt.elw) e=0.9_dp*elw+0.1_dp*eup
+  300 continue
   enddo
-  do n=1,nstart
-     fun(n)= y(n)*y(n)*grid%r(n)
-  enddo
-  integ=int_0_inf_dr(fun,grid,nstart,nst)
-  do n1=1,nbeta
-     do n2=1,nbeta
-        integ = integ + qq(n1,n2)*work(n1)*work(n2)
-     enddo
-  enddo
-  dfe=-y(ik)*f(ik)/grid%dx/integ
-  de=-fe*dfe
-  eps=abs(de/e)
-!  write(6,'(i5, 3f20.12)') iter, e, de
-  if(abs(de).lt.thresh) go to 600
-  if(eps.gt.0.25_dp) de=0.25_dp*de/eps
-  if(de.gt.0.0_dp) elw=e
-  if(de.lt.0.0_dp) eup=e
-  e=e+de
-  if(e.gt.eup) e=0.9_dp*eup+0.1_dp*elw
-  if(e.lt.elw) e=0.9_dp*elw+0.1_dp*eup
-300 continue
-  enddo
-  nstop=1
-  if (nstart==0) goto 900
-600 continue
+  
+    nstop=1
+    if (nstart==0) goto 900
+  600 continue
   !
   !   exponential tail of the solution if it was not computed
   !
@@ -294,6 +307,7 @@ subroutine ascheqps ( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   do n=1,mesh
      el(n)=grid%r(n)*y(n)*y(n)
   enddo
+
   integ=int_0_inf_dr(el,grid,mesh,nst)
   if (integ>0.0_DP) then
      integ=sqrt(integ)
