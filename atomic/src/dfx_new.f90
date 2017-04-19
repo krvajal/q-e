@@ -36,11 +36,7 @@ subroutine dfx_new(dchi0, vx)
    save first
 
 
-     do is = 1,grid%mesh
-         
-         print *, "r,rho =>>>",is,  rho(is,1) 
-   enddo
-   stop
+   
 
 !-set the left hand side of the equation
    call drho0ofvx(drho0,dchi0)
@@ -94,12 +90,14 @@ subroutine dfx_new(dchi0, vx)
       appchim1(1:grid%mesh,is) = fac/(grid%r(1:grid%mesh)* &
                             (nspin*rho(1:grid%mesh,is)*grid%r(1:grid%mesh))**third)
    end do
-   print *, "Density"
-    do is = 1,grid%mesh
+   
+   ! print *, "Density"
+
+   ! do is = 1,grid%mesh
          
-         print *, "r,rho =>>>",is,  grid%r(is),rho(is,1:nspin) 
-   enddo
-   stop
+   !       print *, "r,rho =>>>",is,  grid%r(is),rho(is,1:nspin) 
+   ! enddo
+   ! stop
    drhox(1:grid%mesh,1:nspin,1) = drho1(1:grid%mesh,1:nspin)
 
    if (c1 < 1.d-12 ) then

@@ -57,11 +57,8 @@ subroutine new_potential &
      enddo
   endif
 
-  print *, "Computed rho total"
-  do i =1, mesh
-    print *,rho(i,1), rho(i,2)
-  enddo
-  stop
+ 
+ 
   
   call hartree(0,2,mesh,grid,rhotot,vh)
   deallocate(rhotot)
@@ -82,6 +79,7 @@ subroutine new_potential &
         vxcp(:)=0.0_dp
         exc(i) =0.0_dp
      else
+        print *, "Computing vxc[rho]"
         call vxc_t(lsd,rh,rhc,excp,vxcp)
         exc(i)=excp
      endif
@@ -126,14 +124,13 @@ subroutine new_potential &
      call dfx_new(dchi0, vx)
      ! vx contains the oep term
 
-     do is=1,nspin
-        do i=1,mesh
-      ! ADD OEP VX
-           vnew(i,is)= vnew(i,is)  + vx(i,is)
-        end do
-     end do
+     
+     ! ADD OEP VX
+     vnew(:,1:nspin)= vnew(:,1:nspin)  + vx(:,1:nspin)
+     
      deallocate(dchi0)
   end if 
+
   if(kli) then
       stop "KLI not implemented "
   endif

@@ -1,6 +1,6 @@
  &input
         title='H',
-        zed=1.0,
+        zed=-1.0,
         xmin=-4,
         dx=0.0025,
         rmax=40,
