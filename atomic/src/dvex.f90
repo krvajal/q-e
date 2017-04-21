@@ -12,7 +12,7 @@ subroutine dvex(nu,dvy)
                         occupation => oc,&
                         sl3, &
                         nspin, &
-                         get_spin => isw, &
+                        get_spin => isw, &
                         grid
    use radial_grids, only: ndmx, hartree
 
