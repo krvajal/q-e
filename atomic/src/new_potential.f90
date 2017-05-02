@@ -98,9 +98,9 @@ subroutine new_potential &
           vgc, egc, tau, vtau, iflag)
      do is=1,nspin
         do i=1,mesh
-           vxc(i,is)=vxc(i,is)+vgc(i,is)
-           vnew(i,is)=vnew(i,is)+vgc(i,is)
-           excgga(i) =egc(i)*fpi*grid%r2(i)
+           vxc(i,is) = vxc(i,is) + vgc(i,is)
+           vnew(i,is) = vnew(i,is) + vgc(i,is)
+           excgga(i) = egc(i)*fpi*grid%r2(i)
         enddo
      enddo
      deallocate(egc)
@@ -128,6 +128,9 @@ subroutine new_potential &
   end if 
 
   if(kli) then
+
+      call compute_kli_potential(vx)
+      vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
       stop "KLI not implemented "
   endif
 

@@ -6,11 +6,15 @@ use ld1inc, only: psi,& ! all electron wavefuntions
                   num_wave_functions => nwf,
                   get_spin => isw 
 
+
 implicit none
+private 
+public compute_kli_potential
 real(dp), allocatable :: mat_m_up(:,:),mat_m_down(:,:)
 integer :: num_up_wavefunctions, num_down_wavefunctions
 
 contains
+
 
 
     subroutine init_module()
@@ -57,4 +61,15 @@ contains
         real(dp),intent(in) :: func(N)
         real(dp),intent(out) :: retval
     end function integrate
+
+
+    subroutine compute_kli_potential(ndmx,  exchange_potential)
+        implicit none
+        integer intent(in) ::  ndmx  ! number of grid points
+        real(dp) :: exchange_potential(ndmx, 2) 
+
+        ! access the wavefunctions
+
+
+    end subroutine compute_kli_potential
 end module kli
