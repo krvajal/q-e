@@ -131,7 +131,7 @@ subroutine new_potential &
 
       call compute_kli_potential(vx)
       vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
-      stop "KLI not implemented "
+      
   endif
 
 
