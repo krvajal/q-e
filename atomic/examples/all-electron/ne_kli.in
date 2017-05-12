@@ -1,7 +1,7 @@
  &input
         title='Ne',
         zed=10.0,
-        xmin=-4, dx=0.025, rmax=40,
+        xmin=-4, dx=0.025, rmax=20,
         rel=0,
         beta=0.3,
         config='1s2 2s2 2p6 '

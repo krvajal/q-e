@@ -18,6 +18,7 @@ subroutine new_potential &
   use kinds, only : DP
   use funct, only : get_iexch, dft_is_meta, dft_is_gradient
   use ld1inc, only : nwf, vx, vxc, exc, excgga, tau, vtau
+  use kli, only : compute_kli_potential
   implicit none
   type(radial_grid_type),intent(in):: grid
   integer, intent(in) :: iflag
@@ -129,7 +130,7 @@ subroutine new_potential &
 
   if(kli) then
 
-      call compute_kli_potential(vx)
+      call compute_kli_potential(grid%mesh,vx)
       vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
       
   endif
