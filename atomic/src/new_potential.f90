@@ -41,7 +41,7 @@ subroutine new_potential &
   kli = get_iexch().eq.10
 
   nspin = 1
-  if (lsd.eq.1) nspin=2
+  if (lsd.eq.1) nspin = 2
   !
   !   compute hartree potential with the total charge
   !
@@ -58,16 +58,16 @@ subroutine new_potential &
      enddo
   endif
 
-
   call hartree(0,2,mesh,grid,rhotot,vh)
+
   deallocate(rhotot)
   !
   ! add exchange and correlation potential: LDA or LSDA only
   !
-  rhc=0.0_DP
-  do i=1,mesh
-     vh(i) = e2*vh(i)
-     do is=1,nspin
+  rhc = 0.0_DP
+  do i= 1, mesh
+     vh(i) = e2 * vh(i)
+     do is = 1, nspin
         rh(is) = rho(i,is)/grid%r2(i)/fpi
      enddo
      if (nlcc) rhc = rhoc(i)/grid%r2(i)/fpi
@@ -77,22 +77,26 @@ subroutine new_potential &
         !
         vxcp(:)=0.0_dp
         exc(i) =0.0_dp
+        print *, "meta gga"
      else
-        print *, "Computing vxc[rho]"
+        vxcp = 0
         call vxc_t(lsd,rh,rhc,excp,vxcp)
-        exc(i)=excp
+        exc(i) = excp
      endif
-     do is=1,nspin
-        vxc(i,is)=vxcp(is)
-        vnew(i,is)= - zed*e2/grid%r(i)+vxt(i)+vh(i)+vxcp(is)
+     
+     do is =1, nspin
+        vxc(i, is) = vxcp(is)
+        vnew(i,is)= - zed*e2/grid%r(i)+vxt(i) + vh(i) + vxcp(is)
      enddo
   end do
+
   !
   ! add exchange and correlation potential: GGA only
   !
   if (gga) then
      allocate(vgc(ndm,2),stat=ierr)
      allocate(egc(ndm),stat=ierr)
+
      call errore('new_potential','allocating vgc and egc',ierr)
 
      call vxcgc (ndm, mesh, nspin, grid%r, grid%r2, rho, rhoc, &
@@ -107,7 +111,7 @@ subroutine new_potential &
      deallocate(egc)
      deallocate(vgc)
   else
-     excgga=0.0_DP
+     excgga = 0.0_DP
   end if
   !
   ! add OEP exchange 
@@ -115,24 +119,27 @@ subroutine new_potential &
   if (oep) then
 !     write (*,*) ndm, nwf
      allocate(dchi0(ndm,nwf))
-
+    
      do nu=1,nwf ! num wave functions
         call dvex(nu,dchi0(1,nu))
      end do
 
+     
      call dfx_new(dchi0, vx)
      ! vx contains the oep term
      ! ADD OEP VX
      vnew(:,1:nspin)= vnew(:,1:nspin)  + vx(:,1:nspin)
-     
+    
      deallocate(dchi0)
   end if 
 
   if(kli) then
-
+      if( lsd == 1)then
+        stop "KLI with LSDA is unsuported"
+      endif
       call compute_kli_potential(grid%mesh,vx)
       vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
-      
+
   endif
 
 
