@@ -66,7 +66,7 @@ contains
                         stop 
                     end if
                 enddo
-                call print_vec(grid_size, func)
+                
                 ! call print_vec(size(func),func)
                 fact1 = shell_occupancy(i)
                 fact2 = shell_occupancy(j)
@@ -76,10 +76,12 @@ contains
                                         0) ! this is the asyntotic behavior for r -> 0 of the integrand  
             enddo
         enddo
-        print *, mat_m(1,1:num_wave_functions)
-        print *, mat_m(2,1: num_wave_functions)
-        print *, mat_m(3,1:num_wave_functions)
-    
+        if( mat_m(1,1) /= mat_m(1,1)) then
+            print *, "We got a problem!!!!"
+            print *, psi(1:10,1,1)
+            stop
+        endif
+
         !M_ij = \int |\phi_i|^2 |\phi_j|^2 / rho
 
 
@@ -110,44 +112,48 @@ contains
         
         print *, "num_wave_functions", num_wave_functions
         
+        ux_kli  = 0
         do i = 1, num_wave_functions
-            spin_i = get_spin(i)
+            call dvex(i,ux_kli(:, i))
+            ! spin_i = get_spin(i)
             
-            l1 =  orbital_angular_momentum(i)
-            print *, "info_i", i, spin_i, l1
-            ux_kli(:, i) = 0.0
-            do j = 1, num_wave_functions
-                spin_j = get_spin(j)
+            ! l1 =  orbital_angular_momentum(i)
+            ! print *, "info_i", i, spin_i, l1
+            ! ux_kli(:, i) = 0.0
+            ! do j = 1, num_wave_functions
+            !     spin_j = get_spin(j)
                 
-                l2 =  orbital_angular_momentum(j)
-                print *, "info_j", j, spin_j, l2
-                if ( spin_i == spin_j) then
-                    ! only wavefunctions with the same spin
-                    lmin =  abs(l1 - l2)
-                    lmax =  l1 + l2
-                    print *, "lmin=", lmin
-                    print *, "lmax=", lmax, l1 + l2
-                    print *,"------------------"
-                    do lambda = lmin, lmax
-                        l3_symbol_squared = sl3(l1,l2,lambda) * 0.5_dp
-                        pseudodensity = psi(:,1,i) * psi(:,1,j)
-                        print  *,"density",pseudodensity(1:10)
-                        print *,"l3_symbol_squared", l3_symbol_squared
-                        ! compute the radial part 
-                        call hartree(lambda, l1 + l2 + 2, grid_size, grid, pseudodensity, pseudopot)
+            !     l2 =  orbital_angular_momentum(j)
+            !     print *, "info_j", j, spin_j, l2
+            !     if ( spin_i == spin_j) then
+            !         ! only wavefunctions with the same spin
+            !         lmin =  abs(l1 - l2)
+            !         lmax =  l1 + l2
+            !         print *, "lmin=", lmin
+            !         print *, "lmax=", lmax, l1 + l2
+            !         print *,"------------------"
+            !         do lambda = lmin, lmax
+            !             l3_symbol_squared = sl3(l1,l2,lambda) * 0.5_dp
+            !             pseudodensity = psi(:,1,i) * psi(:,1,j)
+            !             print  *,"density",pseudodensity(1:10)
+            !             print *,"l3_symbol_squared", l3_symbol_squared
+            !             ! compute the radial part 
+            !             call hartree(lambda, l1 + l2 + 2, grid_size, grid, pseudodensity, pseudopot)
                         
-                        ux_kli(:,i) = ux_kli(:, i) +  l3_symbol_squared * pseudopot * shell_occupancy(i)
-                    enddo
-                endif
-            enddo
-            call print_vec(grid_size, ux_kli(:,i))
-
-            ! stop
+            !             ux_kli(:,i) = ux_kli(:, i) +  l3_symbol_squared * pseudopot * shell_occupancy(i)
+            !         enddo
+            !     endif
+                
+            ! enddo
+            if (i == 2) call savetxtv2("ux2.pot", grid%r, ux_kli(:,i))
+           ux_kli(:,i) = ux_kli(:,i)   / psi(:,1,i)
+            
+            ! call print_vec(grid_size, ux_kli(:,i))
+            
         enddo
+        
 
     end subroutine compute_ux_kli
-
-
 
 
     subroutine  compute_potential_s(grid_size)
@@ -157,6 +163,8 @@ contains
         real(dp) :: work(ndmx)
         real(dp) :: fact
         real(dp) :: int_0_inf_dr
+        integer :: nst
+        
         work = 0.0_dp
         do j = 1, num_wave_functions
             
@@ -164,8 +172,10 @@ contains
                 fact = shell_occupancy(i)
                 work = work + abs(psi(:, 1,i))**2 * ( ux_kli(:,i)  + ux_kli(:,i)) * 0.5_dp  * fact
             enddo
-            work = work * ( shell_occupancy(j) * abs( psi(:, 1, j ))**2 )
-            potential_s(j) = int_0_inf_dr(work, grid, grid_size, 0)
+            nst = 2 * orbital_angular_momentum(j) + 2
+            work = work * ( shell_occupancy(j) * abs( psi(:, 1, j ))**2 ) / rho(:,1)
+            ! work = work * ( shell_occupancy(j) * psi(:, 1, j )) / rho(:,1)
+            potential_s(j) = int_0_inf_dr(work, grid, grid_size, nst) 
             print *,j, potential_s(j)
         enddo
     end subroutine compute_potential_s
@@ -178,10 +188,10 @@ contains
         real(dp) :: int_0_inf_dr
         work = 0.0_dp
         do i  = 1, num_wave_functions
-            work =  psi(:,1,i) * ux_kli(:,i) * psi(:,1,i)
+            work =  psi(:,1,i) * ux_kli(:,i)  * psi(:,1,i)
             average_ux_kli(i) = shell_occupancy(i) * int_0_inf_dr(work, grid, grid_size, 0)
         enddo
-        print *,average_ux_kli(1: num_wave_functions)
+        
     end subroutine compute_average_ux_kli
 
 
@@ -208,7 +218,7 @@ contains
         do i = 3, grid_size
             zeta(i) = zeta(i-2)*exp(- 2 *dx * k) + (dx/3)*(f(i) + 4* f(i-1) * exp(-dx*k) + exp(-2*dx*k)*f(i-2))
         enddo
-        print *,"zeta", zeta(1:10)
+        
 
         solution(grid_size) =  zeta(grid_size)
         solution(grid_size - 1) = zeta(grid_size - 1) 
@@ -223,62 +233,135 @@ contains
 
     subroutine solve_linear_problem(num_wave_functions, average_kli_potential)
         integer,intent(in) :: num_wave_functions
-        integer, intent(out) :: average_kli_potential(nwfx)
-        integer :: i, info
+        real(dp), intent(out) :: average_kli_potential(nwfx)
+        integer :: i, info, N
         integer :: ipivot(num_wave_functions)
         integer :: lda = nwfx
-
-        print *, "Solving linear problem"
+        
+        print *,"=============="
+        print *,"linear system"
+        N = num_wave_functions -1
         y = 0 
         A = 0
         A = - mat_m
         ! A = A + I
-        do i = 1, num_wave_functions
+        do i = 1, N
             A(i,i) = A(i,i) + 1.0_dp
-            y(i) = potential_s(i) - dot_product(mat_m(1:num_wave_functions,i), average_ux_kli(1:num_wave_functions))
+            y(i) = potential_s(i) - dot_product(mat_m(1:N,i), average_ux_kli(1:N))
             print *,"y", y(i)
         enddo
-        print *, A(1,1:num_wave_functions)
-        print *, A(2,1:num_wave_functions)
-        print *, A(3,1:num_wave_functions)
+
+         print *,"A", A(1,1:N)
+         print *,"M", mat_m(1,1)
+         print *, "V^{S}", potential_s(1)
+         print *, "U_X", average_ux_kli(1)
+
+        ! print *, A(2,1:num_wave_functions)
+        ! print *, A(3,1:num_wave_functions)
 
        ! dim(A) = num_wave_functions * num_wave_functions
        ! solve real matrix Ax = b using blas with double precision
        AA = A ! store original
-       call DGETRF(num_wave_functions, num_wave_functions, A,lda,ipivot, info)
-       call DGETRS('N', num_wave_functions, 1, A, lda, ipivot, y, num_wave_functions, info)
-       print *, "info", info
-       print *, y(1:num_wave_functions)
+       call DGETRF(N, N, A,lda,ipivot, info)
+       call DGETRS('N', N, 1, A, lda, ipivot, y, N, info)
+    !    print *, "info", info
+    !    print *, y(1:num_wave_functions)
        average_kli_potential = y  ! save the solution
-       stop
+       average_kli_potential(N + 1) = average_ux_kli(N + 1) !last term
+       print *,"res", average_kli_potential(1)
+    !    stop
     end subroutine solve_linear_problem
-
-
 
     subroutine compute_kli_potential(grid_size,  exchange_potential)
         
         integer,  intent(in) ::  grid_size  ! number of grid points
         real(dp), intent(out) :: exchange_potential(ndmx, 2) 
-      
+        real(dp) :: work(ndmx), fact(ndmx)
+
+        integer :: i, j
+
+        do i =  1, num_wave_functions
+            do j = 1, grid_size
+                if(psi(j,1,i) /= psi(j,1,i)) then
+                    print *, "We got a problem!!!"
+                    print *, "Invalid wavefunction passed"
+                    stop    
+                endif
+            enddo
+        enddo
+        
 
         ! access the wavefunctions
         print *, "compute kli potential"
         print *, num_wave_functions
         
-       
+        mat_m = 0.0_dp
         call compute_mat_m(num_wave_functions, grid_size,rho)
+        print *,"======="
+        print *, "Matrix M"
+        do i = 1, num_wave_functions
+            print *,mat_m(i,1:num_wave_functions)
+        enddo
+        
         call compute_ux_kli(grid_size)
+        print *,"KLI UX"
+        print *, ux_kli(1:10,1)
+        print *,"!!!!!!!!!"
+        ! stop
         print *, "computing s potential"
         call compute_potential_s(grid_size)
-        print *, "computing averagSe orbital dependent potential"
+        print *, "computing average orbital dependent potential"
         call compute_average_ux_kli(grid_size)
         call solve_linear_problem(num_wave_functions, average_kli_potential)
 
 
+
+        ! print *, "here", average_ux_kli(1) - average_kli_potential(1)
+        ! print *, average_ux_kli(1)
+        ! stop
+        work = 0
         do i = 1, num_wave_functions
+            fact = ux_kli(:,i)  + (average_kli_potential(i) - average_ux_kli(i))
+            work =  work + abs(psi(:,1,i))**2 * fact * shell_occupancy(i)
+            ! work =  work + psi(:,1,i)  * fact
         enddo
+
+        print *, "average kli", average_kli_potential(1:num_wave_functions)
+        print *, "average kli", average_ux_kli(1:num_wave_functions)
         
-
-
+        do i = 1, grid%mesh
+            work(i) = work(i) / rho(i,1)
+        enddo   
+        print *,rho(1,1)
+        call savetxtv2("kli.pot", grid%r, work)
+        ! stop
+        exchange_potential(:,1) = work
+        print *, work(1:10)
+        ! stop
     end subroutine compute_kli_potential
+
+    subroutine savetxtv2(filename,x,y)
+    ! Saves a x,y array into a textfile.
+    !
+    ! Arguments
+    ! ---------
+    !
+    character(len=*), intent(in) :: filename  ! File to save the array to
+    real(dp), intent(in) :: x(:)           ! The x data points
+    real(dp), intent(in) :: y(:)           ! The y data points
+    !
+    ! Example
+    ! -------
+    !
+    ! real(dp) :: data(3, 2)
+    ! call savetxt("log.txt", data)
+
+    integer :: s, i
+    open(newunit=s, file=filename, status="replace")
+    do i = 1, size(x, 1)
+        write(s, *) x(i), y(i)
+    end do
+    close(s)
+
+    end subroutine savetxtv2
 end module kli
