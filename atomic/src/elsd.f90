@@ -34,10 +34,10 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
   logical:: oep, meta, kli
 
   if (noscf) return
-  oep=get_iexch().eq.4
+  oep = get_iexch().eq.4
   kli = get_iexch().eq.10
   
-  meta=dft_is_meta()
+  meta = dft_is_meta()
 
   allocate(f1(grid%mesh),stat=ierr)
   allocate(f2(grid%mesh),stat=ierr)
@@ -46,7 +46,7 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
   allocate(f5(grid%mesh),stat=ierr)
 
   do i=1,grid%mesh
-     rhotot=rho(i,1)
+     rhotot = rho(i,1)
      if (nspin==2) rhotot=rhotot+rho(i,2) 
 !
 !   The integral for the energy due to the interaction with nuclei
@@ -100,8 +100,8 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
      if (oc(n)>0.0_DP) ekin=ekin+oc(n)*enl(n)
   enddo
 
-  if (oep) call add_exchange (ecxc)
-  if (kli) call add_exchange (ecxc)
+  if (oep .or. kli) call add_exchange (ecxc)
+  
 
   etot= ekin + encl + ehrt + ecxc + evxt
 
