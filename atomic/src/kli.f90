@@ -18,7 +18,8 @@ use ld1inc, only: psi,& ! all electron wavefuntions
                   orbital_angular_momentum =>  ll, &
                   oc, &
                   nspin,&
-                  sl3
+                  sl3, &
+                  title
 
 use radial_grids, only  : ndmx, hartree
 
@@ -60,15 +61,9 @@ contains
                 idx(num_wf(s) , s) = i !index of the jth wf with spin s in the global array
             endif
         enddo   
-        if (nspin == 1)then
+        if (nspin == 1) then
             if (num_wf(2) /= 0) stop "error"
         endif
-
-        oc2 = 0.0_dp
-        do nu = 1, num_wave_functions
-            oc2(get_spin(nu)) = oc2(get_spin(nu)) + shell_occupancy(nu)*shell_occupancy(nu)
-        end do
-        print *, num_wf
     end subroutine compute_num_wf
 
     function shell_occupancy(i) result(occup)
@@ -119,7 +114,6 @@ contains
                     idx_j = idx(j,s)
                     s_j =  get_spin(idx_j)
                     if( s_i == s_j) then
-                        print *, "(i,j)" , (/ idx_i, idx_j /),(/ i, j /), s
                         
                         func = abs(  psi(:,1,idx_i))**2 * abs(psi(:,1,idx_j))**2
                         do k = 1, ndmx
@@ -304,7 +298,7 @@ contains
             zeta(i) = zeta(i-2)*exp(- 2 *dx * k) + (dx/3)*(f(i) + 4* f(i-1) * exp(-dx*k) + exp(-2*dx*k)*f(i-2))
         enddo
         
-
+        
         solution(grid_size) =  zeta(grid_size)
         solution(grid_size - 1) = zeta(grid_size - 1) 
         do i = grid_size - 2, 1
@@ -388,7 +382,9 @@ contains
         real(dp) :: shift
         integer :: i, j, s, last_index
 
-        
+        print *, oc(1:num_wave_functions)
+        print *,rho(1:10,1)
+        print *,rho(1:10,2)
         do j = 1, grid_size
             do i =  1, num_wave_functions
                 if(psi(j,1,i) /= psi(j,1,i)) then
@@ -396,28 +392,30 @@ contains
                     print *, "Invalid wavefunction passed"
                     stop    
                 endif
-            enddo
-            do s = 1, nspin
-                if(rho(j,s) < tiny(1.0_dp)) then
-                    print *, "We got a problem here"
-                    print *, "density is zero for spin=", s, j, grid%mesh
-                    stop
+                if( oc(i) > 0 .and. rho(j, get_spin(i)) < tiny(1.0_dp)) then
+                        print *, "We got a problem here"
+                        print *, "density is zero for spin=", s, i, grid%mesh
+                        stop
                 endif
+                
             enddo
+            
         enddo
         
         
         ! access the wavefunctions
         call compute_num_wf(num_wave_functions, num_wf)
        
+
+        print *, oc(1:num_wave_functions)
+        print *, num_wf(1), num_wf(2)
+        ! stop
+        
         mat_m = 0.0_dp
         call compute_mat_m(num_wave_functions, grid_size,rho)
         
         call compute_ux_kli(grid_size)
-        print *,"KLI UX"
-        print *, ux_kli(1:10,1)
-        print *,"!!!!!!!!!"
-        
+      
         print *, "computing s potential"
         call compute_potential_s(grid_size)
         print *, "computing average orbital dependent potential"
@@ -441,8 +439,10 @@ contains
             ! last_index = idx(num_wf(s),s)
             ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
             shift = 0
-            work(:,s) =  (work(:,s) +  shift)/rho(:,s)
-            exchange_potential(:,s) = (slater_potential(:,s)  +  work(:,s))
+            if(num_wf(s) > 0) then
+                work(:,s) =  (work(:,s) +  shift)/rho(:,s)
+                exchange_potential(:,s) = (slater_potential(:,s)  +  work(:,s))
+            endif
         enddo
 
         ! print *, exchange_potential(grid_size ,1:nspin)
