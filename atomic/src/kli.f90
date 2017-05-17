@@ -375,16 +375,20 @@ contains
     end subroutine solve_linear_problem
 
     subroutine compute_kli_potential(grid_size,  exchange_potential)
+    !----------------------------------------------------------------------------------
+    ! calculation of the exchange potential in the KLI ( Kriegger - Li - Ifrate) 
+    ! aproximation 
+    ! Paper:  Krieger, J. B., Li, Y. & Iafrate, G. J. Phys. Rev. A 46, 5453–5458 (1992).
+    ! ----------------------------------------------------------------------------------
         
-        integer,  intent(in) ::  grid_size  ! number of grid points
-        real(dp), intent(out) :: exchange_potential(ndmx, 2) 
-        real(dp) :: work(ndmx,2), fact(ndmx), fact1
-        real(dp) :: shift
-        integer :: i, j, s, last_index
+    integer,  intent(in) ::  grid_size  ! number of grid points
+    real(dp), intent(out) :: exchange_potential(ndmx, 2) 
+    real(dp) :: work(ndmx,2), fact(ndmx), fact1
+    real(dp) :: shift
+    integer :: i, j, s, last_index
 
-        print *, oc(1:num_wave_functions)
-        print *,rho(1:10,1)
-        print *,rho(1:10,2)
+        ! check for valid input pased to the routine
+
         do j = 1, grid_size
             do i =  1, num_wave_functions
                 if(psi(j,1,i) /= psi(j,1,i)) then
@@ -397,36 +401,28 @@ contains
                         print *, "density is zero for spin=", s, i, grid%mesh
                         stop
                 endif
-                
             enddo
-            
         enddo
-        
-        
-        ! access the wavefunctions
-        call compute_num_wf(num_wave_functions, num_wf)
-       
 
-        print *, oc(1:num_wave_functions)
-        print *, num_wf(1), num_wf(2)
-        ! stop
+        
+        ! compute the N_up and N_down wawefunctions
+        ! N_up =  num_wf(1)
+        ! N_down =  num_wf(2)
+        call compute_num_wf(num_wave_functions, num_wf)
         
         mat_m = 0.0_dp
-        call compute_mat_m(num_wave_functions, grid_size,rho)
-        
-        call compute_ux_kli(grid_size)
-      
-        print *, "computing s potential"
-        call compute_potential_s(grid_size)
-        print *, "computing average orbital dependent potential"
-        call compute_average_ux_kli(grid_size)
-        print *, "solving linear problem"
-        call solve_linear_problem(num_wave_functions, average_kli_potential)
+        ! compute matrix M_sigma 
+        ! M(:,:,1)  Matrix up
+        ! M(:,:,2)  Matrix down
+        call compute_mat_m(num_wave_functions, grid_size,rho)    
 
-        ! print *, "here", average_ux_kli(1) - average_kli_potential(1)
-        ! print *, average_ux_kli(1)
-        ! stop
-       
+        call compute_ux_kli(grid_size)
+        ! compute the average slater potential
+        call compute_potential_s(grid_size)
+        call compute_average_ux_kli(grid_size)
+        ! solve proble A x = b with A =  I - M
+        call solve_linear_problem(num_wave_functions, average_kli_potential)   
+        ! fill the output array for the potential
         exchange_potential  = 0
         do s = 1,nspin
             work = 0
@@ -439,14 +435,13 @@ contains
             ! last_index = idx(num_wf(s),s)
             ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
             shift = 0
-            if(num_wf(s) > 0) then
+            if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
                 work(:,s) =  (work(:,s) +  shift)/rho(:,s)
                 exchange_potential(:,s) = (slater_potential(:,s)  +  work(:,s))
             endif
         enddo
-
-        ! print *, exchange_potential(grid_size ,1:nspin)
         
+        ! save exchange potential to file
         call savetxtv2("kli_pot.up", grid%r, exchange_potential(:,1))
         if (nspin > 1) call savetxtv2("kli_pot.dw", grid%r, exchange_potential(:,2))
         
