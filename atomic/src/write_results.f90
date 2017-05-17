@@ -97,10 +97,10 @@ subroutine write_results
         write(stdout,*) 
 !!1100 format(4x,2i2,5x,a2,i2,'(',f5.2,')',f15.4,f15.4,f15.4)
         write(stdout,'(5x,a)') "OEP WARNING: printed eigenvalues were shifted by"
-        if (nspin==1) write(stdout,'(17x,a,3f15.4)') ( "shift :", &
+        if (nspin == 1) write(stdout,'(17x,a,3f15.4)') ( "shift :", &
                             enzero(is), enzero(is)*0.5_dp, &
                             enzero(is)*rytoev_fact, is=1,nspin)
-        if (nspin==2) write(stdout,'(8x,a,i2,3x,a,3f15.4)') ( "spin",is,"shift :", &
+        if (nspin == 2) write(stdout,'(8x,a,i2,3x,a,3f15.4)') ( "spin",is,"shift :", &
                             enzero(is), enzero(is)*0.5_dp, &
                             enzero(is)*rytoev_fact, is=1,nspin)
      end if
@@ -109,7 +109,7 @@ subroutine write_results
 1001 format(/5x, &
           'n l j   nl                  e(Ry) ','         e(Ha)          e(eV)')
      write(stdout,'(5x,"Spin orbit split results")')
-     do n=1,nwf
+     do n = 1, nwf
         IF (verbosity=='high') THEN
            if (oc(n)>-eps6) write(stdout,1123) &
                nn(n),ll(n),jj(n),el(n),isw(n),oc(n),enl(n),enl(n)*0.5_dp, &
@@ -121,7 +121,7 @@ subroutine write_results
         ENDIF
      enddo
      write(stdout,'(5x,"Averaged results")')
-     ok=.true.
+     ok = .true.
      do n=1,nwf
         if (ll(n).gt.0.and.ok) then
            if (oc(n)+oc(n+1)>-eps6) then
