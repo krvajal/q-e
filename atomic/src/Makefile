@@ -100,13 +100,15 @@ write_files.o \
 write_paw_recon.o \
 write_pseudo.o \
 write_results.o \
-write_resultsps.o \
-kli.o
+write_resultsps.o 
+
 
 LD1MODS = \
+kli.o \
 atomic_paw.o \
 ld1inc.o \
-parameters.o 
+parameters.o \
+
 
 QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a ../../LAXlib/libqela.a
 
