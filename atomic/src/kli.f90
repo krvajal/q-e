@@ -115,7 +115,7 @@ contains
                     s_j =  get_spin(idx_j)
                     if( s_i == s_j) then
                         
-                        func = abs(  psi(:,1,idx_i))**2 * abs(psi(:,1,idx_j))**2
+                        func =   psi(:,1,idx_i)**2 * psi(:,1,idx_j)**2
                         do k = 1, ndmx
                             ! if (abs(rho(k,s)) > tiny(1.0_dp)) then
                               func(k)  = func(k) /( rho(k,s))
@@ -364,7 +364,7 @@ contains
                 do l = 1, N
 
                    if( shell_occupancy(idx(l,s)) == 0) stop 
-                   ysol(idx(l,s)) = y(l) /shell_occupancy(idx(l,s))
+                   ysol(idx(l,s)) = y(l) ! /shell_occupancy(idx(l,s))
                 enddo
                 ! print *, "y =", y(1:N)
             endif
@@ -385,10 +385,10 @@ contains
     real(dp), intent(out) :: exchange_potential(ndmx, 2) 
     real(dp) :: work(ndmx,2), fact(ndmx), fact1
     real(dp) :: shift
-    integer :: i, j, s, last_index
+    integer :: i, j, s, last_index(2)
 
         ! check for valid input pased to the routine
-
+        last_index = 0
         do j = 1, grid_size
             do i =  1, num_wave_functions
                 if(psi(j,1,i) /= psi(j,1,i)) then
@@ -402,6 +402,9 @@ contains
                         stop
                 endif
             enddo
+            if( rho(j,1 ) > tiny(1.0_dp)) last_index(1) = j
+            if( rho(j,2 ) > tiny(1.0_dp)) last_index(2) = j 
+            
         enddo
 
         
@@ -409,7 +412,10 @@ contains
         ! N_up =  num_wf(1)
         ! N_down =  num_wf(2)
         call compute_num_wf(num_wave_functions, num_wf)
-        
+        if(last_index(1) < grid_size .and. num_wf(1) > 0) stop "error 1"
+        if(last_index(2) < grid_size .and. num_wf(2) > 0) stop "error 2"
+
+
         mat_m = 0.0_dp
         ! compute matrix M_sigma 
         ! M(:,:,1)  Matrix up
@@ -436,8 +442,8 @@ contains
             ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
             shift = 0
             if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
-                work(:,s) =  (work(:,s) +  shift)/rho(:,s)
-                exchange_potential(:,s) = (slater_potential(:,s)  +  work(:,s))
+                work(1:last_index(s),s) =  (work(1:last_index(s),s) +  shift)/rho(:,s)
+                exchange_potential(1:last_index(s),s) = (slater_potential(1:last_index(s),s)  +  work(1:last_index(s),s))
             endif
         enddo
         
