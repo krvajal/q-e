@@ -364,7 +364,7 @@ contains
                 do l = 1, N
 
                    if( shell_occupancy(idx(l,s)) == 0) stop 
-                   ysol(idx(l,s)) = y(l) ! /shell_occupancy(idx(l,s))
+                   ysol(idx(l,s)) = y(l) /shell_occupancy(idx(l,s))
                 enddo
                 ! print *, "y =", y(1:N)
             endif
@@ -402,8 +402,8 @@ contains
                         stop
                 endif
             enddo
-            if( rho(j,1 ) > tiny(1.0_dp)) last_index(1) = j
-            if( rho(j,2 ) > tiny(1.0_dp)) last_index(2) = j 
+            if( rho(j,1 ) > tiny(1.0_dp) .and. last_index(1) == j-1) last_index(1) = j
+            if( rho(j,2 ) > tiny(1.0_dp) .and. last_index(2) == j-1) last_index(2) = j 
             
         enddo
 
@@ -433,16 +433,17 @@ contains
         do s = 1,nspin
             work = 0
             do i = 1, num_wf(s) - 1
-                fact = ysol(idx(i,s))  !average_kli_potential(idx(i,s)) - average_ux_kli(idx(i,s))
+                fact =1   !average_kli_potential(idx(i,s)) - average_ux_kli(idx(i,s))
                 ! work =  work + abs(psi(:,1,i))**2 * fact * shell_occupancy(i)
-                work(:,s) =  work(:,s) + psi(:,1,idx(i,s))**2 * fact * shell_occupancy(idx(i,s))
+                work(:,s) =  work(:,s) + psi(:,1,idx(i,s))**2 * ysol(idx(i,s)) * shell_occupancy(idx(i,s))
             ! work =  work + psi(:,1,i)  * fact
             enddo   
+
             ! last_index = idx(num_wf(s),s)
             ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
             shift = 0
             if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
-                work(1:last_index(s),s) =  (work(1:last_index(s),s) +  shift)/rho(:,s)
+                work(1:last_index(s),s) =  (work(1:last_index(s),s))/rho(:,s)
                 exchange_potential(1:last_index(s),s) = (slater_potential(1:last_index(s),s)  +  work(1:last_index(s),s))
             endif
         enddo
