@@ -1,7 +1,7 @@
 !---------------------------------------------------------------------
 subroutine dfx_new(dchi0, vx)
 !---------------------------------------------------------------------
-! EOP calculation of the exchange potential 
+! OEP calculation of the exchange potential 
 ! --------------------------------------------------------------------
 #undef DEBUG 
 
@@ -108,22 +108,12 @@ subroutine dfx_new(dchi0, vx)
    do iterx =1,niterx
 !- set a new normalized correction vector vvx = chim1*drho/norm
      
-      do is = 1,grid%mesh
-         print *, "vvx =>>>",is, appchim1(is,1:nspin) 
-      enddo
       ! stop
       vvx(1:grid%mesh,1:nspin,iterx) = appchim1(1:grid%mesh,1:nspin) * &
                                              drhox(1:grid%mesh,1:nspin,iterx)
       do is=1,nspin
          call hartree(0,2,grid%mesh,grid,vvx(1,is,iterx),dvh(1,is,iterx))
       end do
-      print *, shape(vvx)
-      do is = 1,grid%mesh
-         print *, "vvx =>>>",is, vvx(is,1,1)   
-      enddo
-      
-      stop
-
 
       aux(1:grid%mesh) =vvx(1:grid%mesh,1,iterx) * dvh(1:grid%mesh,1,iterx)
       if (nspin==2) aux(1:grid%mesh) = 2.d0 * ( aux(1:grid%mesh) +  &
@@ -157,10 +147,7 @@ subroutine dfx_new(dchi0, vx)
          aux(1:grid%mesh) = drhox(1:grid%mesh,1,iterx) * dvh(1:grid%mesh,1,jter)
          if (nspin==2) aux(1:grid%mesh) = 2.d0 * ( aux(1:grid%mesh) + &
                                      drhox(1:grid%mesh,2,iterx)*dvh(1:grid%mesh,2,jter) )
-         print *, "iterx", iterx
-         print *, "jiter", jter
-         print *, "aux", aux
-         print *, "a(i,j)", int_0_inf_dr(aux,grid,grid%mesh,2)
+        
          a(iterx,jter) = int_0_inf_dr(aux,grid,grid%mesh,2)
 
          aux(1:grid%mesh) = drhox(1:grid%mesh,1,jter) * dvh(1:grid%mesh,1,iterx)
@@ -187,11 +174,7 @@ subroutine dfx_new(dchi0, vx)
   
       inva = a
 
-      print *,  "calling factorization"
-      print *, "iwork",iwork
-      print *, "iterx", iterx
-      print *, "inva", inva
-      print *, "niterx", niterx
+     
 
       CALL DSYTRF('U', iterx, inva, niterx, iwork, work, niterx,info)
       if (info.ne.0) stop 'factorization'

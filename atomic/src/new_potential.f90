@@ -134,12 +134,9 @@ subroutine new_potential &
   end if 
 
   if(kli) then
-      if( lsd == 1)then
-        stop "KLI with LSDA is unsuported"
-      endif
+      
       call compute_kli_potential(grid%mesh,vx)
       vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
-
   endif
 
 

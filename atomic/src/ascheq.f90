@@ -86,13 +86,16 @@ subroutine ascheq(nn,lam,energy,mesh,grid,vpot,ze2,thresh0, solution, nstop)
   !
   eup = vpot(mesh) + sqlhf / grid%r2(mesh)
   elw = eup
-
   do i = 1, mesh
      elw = min(elw, vpot(i) + sqlhf/grid%r2(i))
   enddo
+  
+  if(eup .eq. elw) then
+    print *, vpot(1:mesh)
+    call stop_error(200)
+  endif
 
-  if(eup .eq. elw) call stop_error(200)
-
+  
   call adjust_energy(elw, eup, energy)
 
   !
@@ -123,7 +126,7 @@ subroutine ascheq(nn,lam,energy,mesh,grid,vpot,ze2,thresh0, solution, nstop)
 
       !---------------------------------
       ! check for error and get out
-      ! if(ik .ge. mesh-2) call stop_error(302)  
+      if(ik .ge. mesh-2) call stop_error(302)  
       !-------------------------------
 
       do i = 1, mesh

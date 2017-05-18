@@ -56,11 +56,15 @@ contains
        
         do i =  1, num_wave_functions
             s = get_spin(i)
-            if (oc(i) > 0) then
+            ! if (oc(i) > 0) then
                 num_wf(s) = num_wf(s) + 1
                 idx(num_wf(s) , s) = i !index of the jth wf with spin s in the global array
-            endif
+            ! endif
         enddo   
+
+        print *, idx(1:num_wf(1) , 1)
+        print *, idx(1:num_wf(2) , 2)
+        ! stop
         if (nspin == 1) then
             if (num_wf(2) /= 0) stop "error"
         endif
@@ -221,7 +225,7 @@ contains
         slater_potential = 0.0 ! initialize to zero
         do s = 1, nspin
             do i = 1, num_wf(s)
-                fact =  shell_occupancy(idx(i,s))
+                fact =  shell_occupancy(idx(i,s))! ok
                 slater_potential(:,s) = slater_potential(:,s) +  psi(:, 1, idx(i,s)) *  v_x_hf(:, idx(i,s)) * fact 
             enddo
             slater_potential(:,s) = slater_potential(:,s)/ (rho(:,s))
@@ -230,7 +234,7 @@ contains
         do j = 1, num_wave_functions
             spin_j = get_spin(j)
             nst = 2 * orbital_angular_momentum(j) + 2
-            fact = 2 * orbital_angular_momentum(j) + 1
+            fact =  2 * orbital_angular_momentum(j) + 1
             work = psi(:, 1 ,  j ) * psi(:, 1, j) * slater_potential(:,spin_j)
             ! work = work * ( shell_occupancy(j) * psi(:, 1, j )) / rho(:,1)
             potential_s(j) = int_0_inf_dr(work, grid, grid_size, nst)  * shell_occupancy(j)
@@ -274,42 +278,6 @@ contains
     end subroutine compute_average_ux_kli
 
 
-    subroutine compute_radial_part(l1, l2, k, grid_size, Rnl1, Rnl2, solution)
-        integer,intent(in) :: l1,l2, k, grid_size
-        real(dp),intent(in) :: Rnl1(ndmx), Rnl2(ndmx)
-        real(dp),intent(out) :: solution(ndmx)
-        real(dp) :: f(ndmx), zeta(ndmx)
-        real(dp) :: dx, fact
-        integer :: i
-        
-        dx = grid%dx
-
-        print *, "dx", dx
-        
-        f =  grid%mesh * Rnl1 * Rnl2
-        print *, f(1:10)
-        print *, "l1,l2,k", (/l1, l2, k /)
-        
-        zeta(1) = f(1)/(l1 + l2 + k + 3)
-        zeta(2) = f(2)/(l1 + l2 + k + 3)
-        
-        !integrate aux z function outwards
-        do i = 3, grid_size
-            zeta(i) = zeta(i-2)*exp(- 2 *dx * k) + (dx/3)*(f(i) + 4* f(i-1) * exp(-dx*k) + exp(-2*dx*k)*f(i-2))
-        enddo
-        
-        
-        solution(grid_size) =  zeta(grid_size)
-        solution(grid_size - 1) = zeta(grid_size - 1) 
-        do i = grid_size - 2, 1
-            fact = zeta(i) + 4 * exp(-dx * (k + 1)) * zeta(i + 1) + exp(-2 * dx *(k + 1)) * zeta(i + 2)
-            solution(i) = solution(i + 2) * exp(-2*dx*(k+1)) + (2 * k + 1)*(dx/3)*fact
-        enddo
-        
-
-    end subroutine compute_radial_part
-
-
     subroutine solve_linear_problem(num_wave_functions, average_kli_potential)
 
         integer,intent(in) :: num_wave_functions
@@ -333,7 +301,7 @@ contains
                         print *, "error"
                         stop
                     endif
-                    A(i,i) = A(i,i) + 1.0_dp 
+                    A(i,i) = A(i,i) + 1.0_dp
                     y(i) = ( potential_s(idx(i,s)) -  average_ux_kli(idx(i,s))) 
                     ! print *,"y", i, y(i)
                 enddo
@@ -364,7 +332,7 @@ contains
                 do l = 1, N
 
                    if( shell_occupancy(idx(l,s)) == 0) stop 
-                   ysol(idx(l,s)) = y(l) /shell_occupancy(idx(l,s))
+                   ysol(idx(l,s)) = y(l) !/shell_occupancy(idx(l,s))
                 enddo
                 ! print *, "y =", y(1:N)
             endif
@@ -433,9 +401,9 @@ contains
         do s = 1,nspin
             work = 0
             do i = 1, num_wf(s) - 1
-                fact =1   !average_kli_potential(idx(i,s)) - average_ux_kli(idx(i,s))
+                fact = 1   !average_kli_potential(idx(i,s)) - average_ux_kli(idx(i,s))
                 ! work =  work + abs(psi(:,1,i))**2 * fact * shell_occupancy(i)
-                work(:,s) =  work(:,s) + psi(:,1,idx(i,s))**2 * ysol(idx(i,s)) * shell_occupancy(idx(i,s))
+                work(:,s) =  work(:,s) + psi(:,1,idx(i,s))**2 * ysol(idx(i,s)) !* shell_occupancy(idx(i,s))
             ! work =  work + psi(:,1,i)  * fact
             enddo   
 
@@ -443,8 +411,9 @@ contains
             ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
             shift = 0
             if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
-                work(1:last_index(s),s) =  (work(1:last_index(s),s))/rho(:,s)
+                work(1:last_index(s),s) =  (work(1:last_index(s),s))/rho(1:last_index(s),s)
                 exchange_potential(1:last_index(s),s) = (slater_potential(1:last_index(s),s)  +  work(1:last_index(s),s))
+                call print_vec(last_index(s), exchange_potential(1:last_index(s),s))
             endif
         enddo
         
