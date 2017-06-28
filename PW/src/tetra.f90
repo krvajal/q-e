@@ -508,7 +508,7 @@ subroutine tetra_weights_only (nks, nspin, is, isk, nbnd, nelec, ntetra, &
   !
   ! ... calculates weights with the tetrahedron method (P.E.Bloechl)
   ! ... Fermi energy has to be calculated in previous step
-  ! ... Generalization to noncollinear case courtesy of Yurii Timrov
+  ! ... Generalization to noncollinear case courtesy of Iurii Timrov
 
   USE kinds
   implicit none
@@ -1107,6 +1107,7 @@ SUBROUTINE opt_tetra_partialdos(nspin0, kresolveddos,ne,natomwfc,nkseff,&
                  !
                  wgt(1:4) = 0.0_dp
                  G = 0.0_dp
+                 CYCLE
                  !
               END IF
               !

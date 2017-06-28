@@ -867,6 +867,10 @@ MODULE realus
             idx = idx - dffts%nr1x*j
             i   = idx
             !
+            ! ... do not include points outside the physical range
+            !
+            IF ( i >= dffts%nr1 .OR. j >= dffts%nr2 .OR. k >= dffts%nr3 ) CYCLE
+            !
             DO ipol = 1, 3
                posi(ipol) = dble( i )*inv_nr1s*at(ipol,1) + &
                             dble( j )*inv_nr2s*at(ipol,2) + &
@@ -1322,7 +1326,7 @@ MODULE realus
           arg = ( xk(1,ik) * xyz_beta(1,ir,ia) + &
                   xk(2,ik) * xyz_beta(2,ir,ia) + &
                   xk(3,ik) * xyz_beta(3,ir,ia) ) * tpiba
-          xkphase( ir, ia ) = CMPLX(COS(arg),-SIN(arg))
+          xkphase( ir, ia ) = CMPLX(COS(arg),-SIN(arg),KIND=dp)
        end do
     end do
     !
