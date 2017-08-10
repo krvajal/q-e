@@ -104,10 +104,10 @@ write_resultsps.o
 
 
 LD1MODS = \
-kli.o \
 atomic_paw.o \
 ld1inc.o \
 parameters.o \
+kli.o 
 
 
 QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a ../../LAXlib/libqela.a
@@ -116,7 +116,7 @@ TLDEPS= bindir mods libs
 
 all: tldeps ld1.x
 
-ld1.x: $(LD1OBJS) ld1.o $(LD1MODS) $(QEMODS) $(LIBOBJS)
+ld1.x: $(LD1MODS) $(LD1OBJS)   ld1.o  $(QEMODS) $(LIBOBJS)
 	$(LD) $(LDFLAGS) -o ld1.x \
 		ld1.o $(LD1OBJS) $(LD1MODS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd ../../bin ; ln -fs ../atomic/src/ld1.x . )

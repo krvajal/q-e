@@ -8,5 +8,5 @@
         latt=0,
         iswitch=1,
         config='[He]',
-        dft='PBE',
+        dft='KLI',
  /

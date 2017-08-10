@@ -56,6 +56,7 @@ subroutine el_config &
   do first=1,len
      if (config(first:first) /= ' ') go to 10
   end do
+  print *, "hello"
 10 continue
   !
   ! find core wavefunctions (if any)

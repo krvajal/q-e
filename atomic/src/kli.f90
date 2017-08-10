@@ -1,18 +1,26 @@
+!------------------------------------------------------------------------------
+! Instituto Balseiro, Condensed Matter Research Group
+!------------------------------------------------------------------------------
 !
-! Copyright (C) 2004 PWSCF group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+! MODULE: kli
 !
-
-
+!> @author
+!> Miguel Carvajal
+!
+! DESCRIPTION: 
+!> Implementation of the KLI exchange potential aproximation.
+!
+! REVISION HISTORY:
+! 18 May 2017 - Initial Version
+! TODO_dd_mmm_yyyy - TODO_describe_appropriate_changes - TODO_name
+!------------------------------------------------------------------------------
 module kli
+
 use kinds, ONLY : dp
 use ld1_parameters, only:  nwfx ! max number of wavefunctions
 use ld1inc, only: psi,& ! all electron wavefuntions
                   rho, &   ! all electron density rho(:,1)(up), rho(:,2) (down)
-                  num_wave_functions => nwf, &
+                  num_wave_functions => nwf, &        
                   get_spin => isw , &
                   grid, & ! radial grid
                   orbital_angular_momentum =>  ll, &
@@ -22,12 +30,10 @@ use ld1inc, only: psi,& ! all electron wavefuntions
                   title
 
 use radial_grids, only  : ndmx, hartree
-
 implicit none
+
 private 
-public compute_kli_potential
-
-
+public compute_kli_potential ! routine to compute kli potential
 
 real(dp) :: v_x_hf(ndmx,nwfx) !  V^{HF}_i =  \sum \phi_j(r) \int d^3r' \phi_i(r')\phi_j(r')/ | r - r'|
 real(dp) :: ux_kli(ndmx,nwfx) !  u_{xi\sigma} = V^{HF}_i / \psi_i
@@ -39,32 +45,28 @@ real(dp) :: mat_m(nwfx, nwfx, 2)  ! M_ij = \int |\psi_i|^2 |\psi_j|^2 / rho
 integer :: num_wf(2) ! number of up and down wavefunctions
 real(dp) :: oc2(2)
 integer :: idx(nwfx,2) ! mapping between the vector of all wawefunctions and the values depending on the spin
-! linear problem variables A x = y (with x = V^{KLI}_X)
-real(dp) :: A(nwfx, nwfx), y(nwfx),  ysol(nwfx), AA(nwfx, nwfx)
-real(dp) :: slater_potential(ndmx,2) ! V^{AFA}_\sigma \sum_i^{N_\sigma} |\phi_{i\sigma}|^2/\rho_sigma * u_{xi\sigma}
-contains
+real(dp) :: A(nwfx, nwfx), y(nwfx),  ysol(nwfx), AA(nwfx, nwfx) ! linear problem variables \f$ A x = y (with x = V^{KLI}_X \f$
+real(dp) :: slater_potential(ndmx,2) ! \f$V^{AFA}_\sigma \sum_i^{N_\sigma} |\phi_{i\sigma}|^2/\rho_sigma * u_{xi\sigma}\f$
 
+contains
     subroutine compute_num_wf(num_wave_functions, num_wf)
     ! determine the number of up and down wavefunctions
         integer , intent(in) :: num_wave_functions
         integer , intent(out) :: num_wf(2) 
 
-
         integer :: i, s ! aux variables
         integer :: nu
         num_wf = 0
        
+
         do i =  1, num_wave_functions
             s = get_spin(i)
-            ! if (oc(i) > 0) then
+            if (oc(i) > 0) then
                 num_wf(s) = num_wf(s) + 1
                 idx(num_wf(s) , s) = i !index of the jth wf with spin s in the global array
-            ! endif
+            endif
         enddo   
 
-        print *, idx(1:num_wf(1) , 1)
-        print *, idx(1:num_wf(2) , 2)
-        ! stop
         if (nspin == 1) then
             if (num_wf(2) /= 0) stop "error"
         endif
@@ -98,7 +100,7 @@ contains
         
         ! aux variables
         integer :: i, j, k, ii
-        integer :: grid_size 
+        integer :: grid_size (2)
         integer ::  s_i, s_j, idx_i, idx_j
         real (dp) :: func(ndmx) , fact1,fact2
         real (dp) :: retval
@@ -111,16 +113,16 @@ contains
             do i = 1, num_wf(s)
                 idx_i = idx(i,s)
                 s_i = get_spin(idx_i) 
-                ! s_i should be equal s
-                
+                ! s_i should be equal sd
+
                 do j = 1, num_wf(s)
                     ! psi (i) and psi(j) must have the same spin
                     idx_j = idx(j,s)
                     s_j =  get_spin(idx_j)
                     if( s_i == s_j) then
-                        
+
                         func =   psi(:,1,idx_i)**2 * psi(:,1,idx_j)**2
-                        do k = 1, ndmx
+                        do k = 1, grid_size(s_i)
                             ! if (abs(rho(k,s)) > tiny(1.0_dp)) then
                               func(k)  = func(k) /( rho(k,s))
                             ! else if(abs(func(k)) > tiny(1.0_dp)) then
@@ -131,16 +133,15 @@ contains
                         ! call print_vec(size(func),func)
                         fact1 = (2 * orbital_angular_momentum(idx_i)  + 1)
                         fact2 =  shell_occupancy(idx_j)
-                        
+
                         nst =   2 * orbital_angular_momentum(idx_i) + 2
                         retval = fact1 * fact2 * int_0_inf_dr(func, &
                                             grid, &
                                             grid_size, &
-                                            nst) ! this is the asyntotic behavior for r -> 0 of the integrand  
+                                            nst) ! this is the asyntotic behavior for r -> 0 of the integrand
 
                         ! retval goes to the i,j entry of matrix with spin s
                          mat_m(i,j,s) = retval 
-                        print *, i,j, mat_m(i,j,s)
 #ifdef DEBUG
                          if (retval < tiny(1.0_dp)) then    
                             print *,"Too small"
@@ -152,9 +153,8 @@ contains
                          endif
 #endif
                     else
-                        
                         stop "We got into trouble here"
-                    endif ! the elements does not have the same spin               
+                    endif ! the elements does not have the same spin
                 enddo ! loop over j
             enddo ! lopp over i
             
@@ -183,38 +183,11 @@ contains
     end subroutine print_vec
 
 
-    subroutine compute_ux_kli(grid_size)
-        ! compute the value of ux_kli given by 
-        ! equation (118) of the GKK paper
-        ! this is the so called orbital dependent potential
-        integer, intent(in) :: grid_size
-
-        integer :: i, j
-        integer :: spin_i, spin_j
-        integer :: l1, l2, lambda
-        integer :: lmin, lmax
-        real(dp) :: pseudodensity(ndmx)
-        real(dp) :: pseudopot(ndmx)
-        real(dp) :: l3_symbol_squared
-        
-        
-        v_x_hf  = 0.0_dp
-        ux_kli = 0.0_dp
-        do i = 1, num_wave_functions
-            call dvex(i,v_x_hf(:, i))
-            ! ux_kli(:,i) = v_x_hf(:,i) / (psi(:,1,i))
-            ! call print_vec(grid_size, ux_kli(:,i))
-        enddo
-        if(v_x_hf(1,1) == 0) then 
-            print *, psi(1:10,1,2)
-            stop "here"
-        endif
-
-    end subroutine compute_ux_kli
+    subroutine  compute_slater_potential(grid_size)
 
 
-    subroutine  compute_potential_s(grid_size)
-        integer, intent(in) :: grid_size
+
+        integer, intent(in) :: grid_size(2)
 
         integer :: i,j,s
         real(dp) :: work(ndmx)
@@ -226,32 +199,33 @@ contains
         do s = 1, nspin
             do i = 1, num_wf(s)
                 fact =  shell_occupancy(idx(i,s))! ok
-                slater_potential(:,s) = slater_potential(:,s) +  psi(:, 1, idx(i,s)) *  v_x_hf(:, idx(i,s)) * fact 
+                slater_potential(1:grid_size(s),s) = slater_potential(1:grid_size(s),s) +  &
+                 psi(1:grid_size(s), 1, idx(i,s)) *  v_x_hf(1:grid_size(s), idx(i,s)) * fact 
             enddo
-            slater_potential(:,s) = slater_potential(:,s)/ (rho(:,s))
+            slater_potential(1:grid_size(s),s) = slater_potential(1:grid_size(s),s)/ (rho(1:grid_size(s),s))
         enddo
 
-        do j = 1, num_wave_functions
-            spin_j = get_spin(j)
-            nst = 2 * orbital_angular_momentum(j) + 2
-            fact =  2 * orbital_angular_momentum(j) + 1
-            work = psi(:, 1 ,  j ) * psi(:, 1, j) * slater_potential(:,spin_j)
-            ! work = work * ( shell_occupancy(j) * psi(:, 1, j )) / rho(:,1)
-            potential_s(j) = int_0_inf_dr(work, grid, grid_size, nst)  * shell_occupancy(j)
-#ifdef DEBUG
-            print *, j, potential_s(j)
-#endif
+!         do j = 1, num_wave_functions
+!             spin_j = get_spin(j)
+!             nst = 2 * orbital_angular_momentum(j) + 2
+!             fact =  2 * orbital_angular_momentum(j) + 1
+!             work = psi(:, 1 ,  j ) * psi(:, 1, j) * slater_potential(:,spin_j)
+!             ! work = work * ( shell_occupancy(j) * psi(:, 1, j )) / rho(:,1)
+!             potential_s(j) = int_0_inf_dr(work, grid, grid_size, nst)  * fact !sshell_occupancy(j)
+! #ifdef DEBUG
+!             print *, j, potential_s(j)
+! #endif
 
-        enddo
+!         enddo
         
-    end subroutine compute_potential_s
-
-
+    end subroutine compute_slater_potential
 
 
     subroutine compute_average_ux_kli(grid_size)
-        ! computes  <i| u_xi| i> 
-        integer, intent(in) :: grid_size
+
+        ! computes  <i| u_xi| i> = \int dr r^2 R_nl(r) V^{HF} (r)
+
+        integer, intent(in) :: grid_size(2)
         integer :: i, fact
         real(dp) :: work(ndmx)
         real(dp) :: int_0_inf_dr
@@ -259,22 +233,16 @@ contains
         
         work = 0.0_dp
         do i  = 1, num_wave_functions
-            work =  psi(:,1,i) *  v_x_hf(:,i) * shell_occupancy(i)
-            ! fact = shell_occupancy(i)* (2 * orbital_angular_momentum(i) + 1)
-            nst = 2 * orbital_angular_momentum(i) + 2
-            average_ux_kli(i) =  int_0_inf_dr(work, grid, grid_size, nst) 
 
-            print *, i , average_ux_kli(i), get_spin(i)
+            work =  psi(:,1,i) *  v_x_hf(:,i) ! shall it be multiplied by the radial function
             
-            if(average_ux_kli(i) /= average_ux_kli(i)) then 
-                print *, "We got a problem" ! NaN value
-                print *, "Invalid average kli"
-                print *, ux_kli(:,i)
-                stop
-            endif
+            nst = 2 * orbital_angular_momentum(i) + 2
+            average_ux_kli(i) =  int_0_inf_dr(work, grid, grid_size(get_spin(i)), nst)
+
         enddo
-        
-        
+        ! check for nan values
+        call   check_nan(num_wave_functions, average_ux_kli)
+
     end subroutine compute_average_ux_kli
 
 
@@ -342,18 +310,74 @@ contains
        
     end subroutine solve_linear_problem
 
-    subroutine compute_kli_potential(grid_size,  exchange_potential)
-    !----------------------------------------------------------------------------------
-    ! calculation of the exchange potential in the KLI ( Kriegger - Li - Ifrate) 
-    ! aproximation 
-    ! Paper:  Krieger, J. B., Li, Y. & Iafrate, G. J. Phys. Rev. A 46, 5453–5458 (1992).
-    ! ----------------------------------------------------------------------------------
-        
+    subroutine compute_average_kli_potential(kli_pot,grid_size, average_kli_potential)
+   !---------------------------------------------------------------------------  
+   !> @author 
+   !> Miguel Carvajal, Instituto Balseiro
+   !
+   ! DESCRIPTION: 
+   !> Computes the average integral of the KLI potential for each KS wavefunction
+   !> @brief
+   !> The integral that gets solved is $\int dr r^2 R^2_{nl}(r) V^{KLI}(r) $
+   !
+   ! REVISION HISTORY:
+   ! TODO_12_JUL_2017 - Renamed some variables and documented better - Miguel Carvajal
+   !
+   !> @param[in] kli_pot the radial value of the KLI potential $V^{KLI}(r)$
+   !> @param[out] exchange_potential the radial valur of the exchange potential      
+   !---------------------------------------------------------------------------   
+    real(dp),intent(in) :: kli_pot(ndmx, 2)
+    integer ,intent(in) :: grid_size(2)
+    real(dp), intent(out) :: average_kli_potential(:)
+
+    ! interval variables
+    ! this makes uses of global variables:
+    ! `nspin`,  `num_wf`, `orbital_angular_momentum`
+
+    real(dp) :: work(ndmx)
+    real(dp) :: int_0_inf_dr
+    integer :: s , i, idx_i, nst
+
+    do s = 1, nspin 
+        do i = 1, num_wf(s)
+            idx_i = idx(i,s)
+            nst = 2 * orbital_angular_momentum(idx_i) + 2 ! compute asymtotic power
+            work = psi(:,1,idx_i)**2 * kli_pot(:,s) 
+            average_kli_potential(idx_i) = int_0_inf_dr(work,grid, grid_size(s), nst) ! integrate for i
+        enddo
+    enddo
+
+    end subroutine
+
+   subroutine compute_kli_potential(grid_size,  exchange_potential)
+   !---------------------------------------------------------------------------  
+   !> @author 
+   !> Miguel Carvajal, Instituto Balseiro
+   !
+   ! DESCRIPTION: 
+   !> Computes the exchange potential in the KLI aproximation
+   !> @brief
+   !> calculation of the exchange potential in the KLI ( Kriegger - Li - Ifrate) 
+   !> aproximation 
+   !> Paper:  Krieger, J. B., Li, Y. & Iafrate, G. J. Phys. Rev. A 46, 5453–5458 (1992).
+   !
+   ! REVISION HISTORY:
+   ! TODO_dd_mmm_yyyy - TODO_describe_appropriate_changes - TODO_name
+   !
+   !> @param[in] grid_size the size of the radial  grid    
+   !> @param[out] exchange_potential the radial valur of the exchange potential      
+   !---------------------------------------------------------------------------          
     integer,  intent(in) ::  grid_size  ! number of grid points
     real(dp), intent(out) :: exchange_potential(ndmx, 2) 
     real(dp) :: work(ndmx,2), fact(ndmx), fact1
     real(dp) :: shift
-    integer :: i, j, s, last_index(2)
+    integer :: i, j, s, last_index(2), idx_i
+    logical :: started = .false. !> @var started initialize the function call once
+
+        if (.not. started) then
+         average_kli_potential = 0
+            started = .true.
+        endif
 
         ! check for valid input pased to the routine
         last_index = 0
@@ -362,17 +386,14 @@ contains
                 if(psi(j,1,i) /= psi(j,1,i)) then
                     print *, "We got a problem!!!"
                     print *, "Invalid wavefunction passed"
+                    print *,psi(j,1,i)
                     stop    
                 endif
-                if( oc(i) > 0 .and. rho(j, get_spin(i)) < tiny(1.0_dp)) then
-                        print *, "We got a problem here"
-                        print *, "density is zero for spin=", s, i, grid%mesh
-                        stop
-                endif
+               
             enddo
             if( rho(j,1 ) > tiny(1.0_dp) .and. last_index(1) == j-1) last_index(1) = j
             if( rho(j,2 ) > tiny(1.0_dp) .and. last_index(2) == j-1) last_index(2) = j 
-            
+ 
         enddo
 
         
@@ -380,71 +401,61 @@ contains
         ! N_up =  num_wf(1)
         ! N_down =  num_wf(2)
         call compute_num_wf(num_wave_functions, num_wf)
-        if(last_index(1) < grid_size .and. num_wf(1) > 0) stop "error 1"
-        if(last_index(2) < grid_size .and. num_wf(2) > 0) stop "error 2"
-
 
         mat_m = 0.0_dp
         ! compute matrix M_sigma 
         ! M(:,:,1)  Matrix up
         ! M(:,:,2)  Matrix down
-        call compute_mat_m(num_wave_functions, grid_size,rho)    
+        ! call compute_mat_m(num_wave_functions, grid_size,rho)    
 
-        call compute_ux_kli(grid_size)
+        do i = 1, num_wave_functions
+            call dvex(i,v_x_hf(:, i))    
+        enddo
+
+
         ! compute the average slater potential
-        call compute_potential_s(grid_size)
-        call compute_average_ux_kli(grid_size)
+        call compute_slater_potential(last_index)
+        call compute_average_ux_kli(last_index)
         ! solve proble A x = b with A =  I - M
-        call solve_linear_problem(num_wave_functions, average_kli_potential)   
+        ! call solve_linear_problem(num_wave_functions, average_kli_potential)   
         ! fill the output array for the potential
         exchange_potential  = 0
-        do s = 1,nspin
-            work = 0
-            do i = 1, num_wf(s) - 1
-                fact = 1   !average_kli_potential(idx(i,s)) - average_ux_kli(idx(i,s))
-                ! work =  work + abs(psi(:,1,i))**2 * fact * shell_occupancy(i)
-                work(:,s) =  work(:,s) + psi(:,1,idx(i,s))**2 * ysol(idx(i,s)) !* shell_occupancy(idx(i,s))
-            ! work =  work + psi(:,1,i)  * fact
-            enddo   
+        do j = 1,10 ! do it ten times 
+            do s = 1,nspin
+                work = 0
 
-            ! last_index = idx(num_wf(s),s)
-            ! shift =  psi(:,1,idx(i,s))**2 * ysol(last_index) * (shell_occupancy(last_index) - 1)
-            shift = 0
-            if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
-                work(1:last_index(s),s) =  (work(1:last_index(s),s))/rho(1:last_index(s),s)
-                exchange_potential(1:last_index(s),s) = (slater_potential(1:last_index(s),s)  +  work(1:last_index(s),s))
-                call print_vec(last_index(s), exchange_potential(1:last_index(s),s))
-            endif
+                do i = 1, num_wf(s) - 1
+                    idx_i = idx(i,s)
+                    fact = average_kli_potential(idx_i) - average_ux_kli(idx_i)  
+                    work(:,s) =  work(:,s) + psi(:,1,idx_i)**2 * fact *  shell_occupancy(idx_i)
+                enddo   
+
+                if(num_wf(s) > 0) then ! s can be zero as in the hidrogen case
+                    work(1:last_index(s),s) =  (work(1:last_index(s),s))/rho(1:last_index(s),s)
+                    exchange_potential(1:last_index(s),s) = (slater_potential(1:last_index(s),s)  +  work(1:last_index(s),s))
+                    ! all print_vec(last_index(s), exchange_potential(1:last_index(s),s))
+                endif
+            enddo
+            ! compute the average 
+            call compute_average_kli_potential(exchange_potential, last_index, average_kli_potential)
         enddo
-        
         ! save exchange potential to file
-        call savetxtv2("kli_pot.up", grid%r, exchange_potential(:,1))
-        if (nspin > 1) call savetxtv2("kli_pot.dw", grid%r, exchange_potential(:,2))
+     
         
     end subroutine compute_kli_potential
+    
+    subroutine check_nan(N,arr)
+        real(dp),intent(in) :: arr(:)
+        integer,intent(in) :: N
 
-    subroutine savetxtv2(filename,x,y)
-    ! Saves a x,y array into a textfile.
-    !
-    ! Arguments
-    ! ---------
-    !
-    character(len=*), intent(in) :: filename  ! File to save the array to
-    real(dp), intent(in) :: x(:)           ! The x data points
-    real(dp), intent(in) :: y(:)           ! The y data points
-    !
-    ! Example
-    ! -------
-    !
-    ! real(dp) :: data(3, 2)
-    ! call savetxt("log.txt", data)
-
-    integer :: s, i
-    open(newunit=s, file=filename, status="replace")
-    do i = 1, size(x, 1)
-        write(s, *) x(i), y(i)
-    end do
-    close(s)
-
-    end subroutine savetxtv2
+        ! internal var
+        integer :: i
+        do i = 1,N
+            if(arr(i) /= arr(i)) then 
+                print *, "We got a problem" ! NaN value
+                print *, "Found NaN value in array, forcing stop"
+                stop
+            endif
+        end do
+    end subroutine check_nan
 end module kli

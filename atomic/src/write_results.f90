@@ -5,6 +5,10 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
+
+
+  
+
 !--------------------------------------------------------------
 subroutine write_results 
   !--------------------------------------------------------------
@@ -21,16 +25,18 @@ subroutine write_results
                         dhrsic, dxcsic, eps0, iter, psi, rytoev_fact, lsmall, &
                         core_state, ekinc, ekinv, ae_fc_energy, cau_fact, &
                         relpert, evel, edar, eso, noscf, iswitch, rho, &
-                        file_charge, max_out_wfc
+                        file_charge, max_out_wfc, vx
 
   use funct, only :  get_iexch, get_dft_name, write_dft_name
+
+  
   implicit none
 
   integer :: is, i, j, n, m, im(40), ios, counter, ismax
   real(DP):: work(ndmx), dum, int_0_inf_dr, ravg, r2avg, sij, ene, mm, &
              sij1, sij2, charge_large, charge_small, work1(ndmx), work2(ndmx)
   real(DP) :: psiaux(ndmx,max_out_wfc)
-  logical :: ok, oep, print_fc
+  logical :: ok, oep, print_fc, kli
   character (len=20) :: dft_name
   character (len=2) :: elaux(max_out_wfc)
   character (len=60) :: vstates
@@ -64,6 +70,7 @@ subroutine write_results
           'n l     nl                  e(Ry) ','         e(Ha)          e(eV)')
 
      oep = get_iexch() .eq. 4
+     kli = get_iexch() .eq. 10
      if (oep) enl(1:nwf) = enl(1:nwf) - enzero(isw(1:nwf))
      do n=1,nwf
         if (oc(n)>-eps6) then 
@@ -104,6 +111,8 @@ subroutine write_results
                             enzero(is), enzero(is)*0.5_dp, &
                             enzero(is)*rytoev_fact, is=1,nspin)
      end if
+
+
   else
      write(stdout,1001)
 1001 format(/5x, &
@@ -439,6 +448,38 @@ subroutine write_results
   endif
 
   write(stdout,"(/,5x,24('-'), ' End of All-electron run ',24('-'),/)")
-
+  do i = 1, nspin
+    call savetxtv2("vx.pot"//suffix(i), grid%r, vx(1:grid%mesh,i))
+  enddo
+  
   return
+  contains
+     
+subroutine savetxtv2(filename,x,y)
+    use kinds,        only : dp
+    ! Saves a x,y array into a textfile.
+    !
+    ! Arguments
+    ! ---------
+    !
+    character(len=*), intent(in) :: filename  ! File to save the array to
+    real(dp), intent(in) :: x(:)           ! The x data points
+    real(dp), intent(in) :: y(:)           ! The y data points
+    !
+    ! Example
+    ! -------
+    !
+    ! real(dp) :: data(3, 2)
+    ! call savetxt("log.txt", data)
+
+    integer :: s, i
+    open(newunit=s, file=filename, status="replace")
+    do i = 1, size(x, 1)
+        write(s, *) x(i), y(i)
+    end do
+    close(s)
+
+  end subroutine savetxtv2
+
 end subroutine write_results
+

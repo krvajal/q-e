@@ -2,8 +2,6 @@
 subroutine dvex(nu,dvy)
    !--------------------------------------------------------------------
    !    
-   !
-   !
    USE kinds,     ONLY: DP
    USE constants, ONLY: electron_charge_squared => e2
    USE ld1inc,    ONLY: nwf, &
@@ -23,6 +21,8 @@ subroutine dvex(nu,dvy)
    integer,intent(in) :: nu
    real (DP),intent(out) :: dvy(ndmx) 
 
+   
+
    !
    ! local variables
    !
@@ -39,9 +39,9 @@ subroutine dvex(nu,dvy)
    l1 = get_angular_momentum(nu)
    half = 2.d0 * l1 + 1.d0
 
+
    ! iterate over all the KS wavefunctions 
    ! get_spin(i) gives the spin of the i wavefunction
-
    do mu = 1,nwf
       !
       ! only wfc with the same spin contribute to exchange term
@@ -57,7 +57,7 @@ subroutine dvex(nu,dvy)
            doc = (i*(2.d0*ocs-i-1.d0)/(half-1.d0) - ocs*ocs/half) * half/ocs
          end if
          ocs = ocs + doc
-!         if (doc /= 0.d0) write (*,*) "DOC ",nu, doc
+      !   if (doc /= 0.d0) write (*,*) "DOC ",nu, doc
       end if
 !
       l2 = get_angular_momentum(mu)
@@ -67,7 +67,6 @@ subroutine dvex(nu,dvy)
         
       !    wrk(i) = psi(i,1,mu)*psi(i,1,nu) ! \varphi^{*}_{mu \sigma}\varphi^{*}_{nu \sigma} 
       ! end do
-
       do l3 = l0, l1 + l2
          sss = sl3(l1,l2,l3) ! some kind of symbol
 !         write (*,*) l1,l2,l3,sss
@@ -76,20 +75,22 @@ subroutine dvex(nu,dvy)
             ! from radial_grids
             ! the output goes to vh
             call hartree(l3,l1+l2+2,grid%mesh, grid, wrk, vh = wrk1)
-
+      
             fac =-electron_charge_squared*ocs*sss/2.0d0
 
             do i=1,grid%mesh
                dvy(i)= dvy(i) + fac*wrk1(i)*psi(i,1,mu)
-            end do
 
+            end do
          end if
       end do
+
+
+
 
 !- spurious hartree part 
       
       if (mu == nu ) then
-
           call hartree(0,2,grid%mesh,grid,wrk,wrk1)
           fac = doc  * electron_charge_squared
           do i=1,grid%mesh
@@ -98,4 +99,5 @@ subroutine dvex(nu,dvy)
       end if
 
    end do 
+   
 end subroutine dvex

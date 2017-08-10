@@ -1,5 +1,5 @@
 
-     Program LD1 v.6.1 starts on 17May2017 at 20: 2:19 
+     Program LD1 v.6.1 starts on 28Jun2017 at 15:52:20 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -11,17 +11,10 @@
      Parallel version (MPI), running on     1 processors
      Waiting for input...
      Reading input from standard input
-           1           1  0.99999999999999778     
-           1  -1.2500000001126308                1
-           2   0.0000000000000000                2
-           1           1  0.99999999999999778     
-           1  -1.2500000001126308                1
-           2   0.0000000000000000                2
-           1           1  0.99999999999999634     
-           1  -1.2500000001126184                1
-           2   0.0000000000000000                2
  F
- error           0
+ error          50
+     Message from routine scf:
+     warning: at least one error in KS equations
      --------------------------- All-electron run ----------------------------
 
      H                                                                          

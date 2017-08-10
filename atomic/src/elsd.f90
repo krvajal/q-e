@@ -20,6 +20,8 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
   use radial_grids, only: ndmx, radial_grid_type
   use funct, only: get_iexch, dft_is_meta
   use ld1inc, only: vx, noscf, tau, vtau
+
+
   implicit none
   integer, intent(in) :: nwf, nspin
   type(radial_grid_type),intent(in)::grid
@@ -112,4 +114,6 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
   deallocate(f1)
 
   return
+  
+    
 end subroutine elsd
