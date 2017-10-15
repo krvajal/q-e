@@ -58,7 +58,7 @@ MODULE exx
   COMPLEX(DP), ALLOCATABLE :: exxbuff(:,:,:)
                                          ! temporary buffer for wfc storage
   !
-  LOGICAL :: use_ace=.true.  !  true: Use Lin Lin's ACE method
+  LOGICAL :: use_ace= .false. !.true.  !  true: Use Lin Lin's ACE method
                              !  false: do not use ACE, use old algorithm instead
   COMPLEX(DP), ALLOCATABLE :: xi(:,:,:)  ! ACE projectors
   INTEGER :: nbndproj
@@ -204,11 +204,11 @@ MODULE exx
     USE klist,        ONLY : qnorm
     USE cell_base,    ONLY : at, bg, tpiba2
     USE fft_custom,   ONLY : set_custom_grid, ggent
-    USE control_flags,ONLY : tqr
+    USE control_flags,ONLY : tqr 
     USE realus,       ONLY : qpointlist, tabxx, tabp!, tabs
 
     IMPLICIT NONE
-
+    
     IF( exx_fft%initialized) RETURN
 
     ! Initialise the custom grid that allows us to put the wavefunction
@@ -375,7 +375,7 @@ MODULE exx
     IF(nkstot==nspin_lsda) THEN
       nq1=1; nq2=1; nq3=1
     ENDIF
-
+    
     IF(any((/nq1,nq2,nq3/)<=0)) CALL errore('exx_grid_init',"wrong EXX q grid", 1)
     !
     IF(exx_grid_initialized) CALL errore('exx_grid_init', "grid already initialized",1)
@@ -578,7 +578,9 @@ MODULE exx
   !------------------------------------------------------------------------
   SUBROUTINE exx_div_check()
     !------------------------------------------------------------------------
-    !
+    ! Check the parameter exxdiv_treatment from
+    ! the input file
+    ! Miguel Carvajal comment
     USE cell_base,  ONLY : at, alat
     USE funct,      ONLY : get_screening_parameter
     !
@@ -769,16 +771,14 @@ MODULE exx
 #endif
     COMPLEX(DP),ALLOCATABLE :: temppsic_nc(:,:), psic_nc(:,:)
     INTEGER :: nxxs, nrxxs
-#if defined(__MPI)
-    COMPLEX(DP),ALLOCATABLE  :: temppsic_all(:),      psic_all(:)
-    COMPLEX(DP), ALLOCATABLE :: temppsic_all_nc(:,:), psic_all_nc(:,:)
-#endif
+
     COMPLEX(DP) :: d_spin(2,2,48)
     INTEGER :: npw, current_ik
     INTEGER, EXTERNAL :: global_kpoint_index
     INTEGER :: ibnd_start_new, ibnd_end_new
     INTEGER :: ibnd_exx, evc_offset
     !
+
     CALL start_clock ('exxinit')
     !
     CALL transform_evc_to_exx(2)
@@ -802,13 +802,7 @@ MODULE exx
        ALLOCATE(psic_exx(nrxxs))
        psic_exx = 0.0_DP
     END IF
-#if defined(__MPI)
-    IF (noncolin) THEN
-       ALLOCATE(psic_all_nc(nxxs,npol), temppsic_all_nc(nxxs,npol) )
-    ELSEIF ( .not. gamma_only ) THEN
-       ALLOCATE(psic_all(nxxs), temppsic_all(nxxs) )
-    ENDIF
-#endif
+
     IF (noncolin) THEN
        ALLOCATE(temppsic_nc(nrxxs, npol), psic_nc(nrxxs, npol))
     ELSEIF ( .not. gamma_only ) THEN
@@ -990,36 +984,7 @@ MODULE exx
                 isym = abs(index_sym(ikq) )
                 !
                 IF (noncolin) THEN ! noncolinear
-#if defined(__MPI)
-                   DO ipol=1,npol
-                      CALL gather_grid(exx_fft%dfftt, temppsic_nc(:,ipol), temppsic_all_nc(:,ipol))
-                   ENDDO
-                   IF ( me_egrp == 0 ) THEN
-!$omp parallel do default(shared) private(ir) firstprivate(npol,nxxs)
-                      DO ir=1,nxxs
-                         !DIR$ UNROLL_AND_JAM (2)
-                         DO ipol=1,npol
-                            psic_all_nc(ir,ipol) = (0.0_DP, 0.0_DP)
-                         ENDDO
-                      ENDDO
-!$omp end parallel do
-!$omp parallel do default(shared) private(ir) firstprivate(npol,isym,nxxs) reduction(+:psic_all_nc)
-                      DO ir=1,nxxs
-                         !DIR$ UNROLL_AND_JAM (4)
-                         DO ipol=1,npol
-                            DO jpol=1,npol
-                               psic_all_nc(ir,ipol) = psic_all_nc(ir,ipol) + &
-                                  conjg(d_spin(jpol,ipol,isym)) * &
-                                  temppsic_all_nc(rir(ir,isym),jpol)
-                            ENDDO
-                         ENDDO
-                      ENDDO
-!$omp end parallel do
-                   ENDIF
-                   DO ipol=1,npol
-                      CALL scatter_grid(exx_fft%dfftt,psic_all_nc(:,ipol), psic_nc(:,ipol))
-                   ENDDO
-#else
+
 !$omp parallel do default(shared) private(ir) firstprivate(npol,nxxs)
                    DO ir=1,nxxs
                       !DIR$ UNROLL_AND_JAM (2)
@@ -1038,7 +1003,7 @@ MODULE exx
                       ENDDO
                    ENDDO
 !$omp end parallel do
-#endif
+
                    IF (index_sym(ikq) > 0 ) THEN
                       ! sym. op. without time reversal: normal case
 !$omp parallel do default(shared) private(ir) firstprivate(ibnd,isym,ikq)
@@ -1057,23 +1022,13 @@ MODULE exx
 !$omp end parallel do
                    ENDIF
                 ELSE ! noncolinear
-#if defined(__MPI)
-                   CALL gather_grid(exx_fft%dfftt,temppsic,temppsic_all)
-                   IF ( me_egrp == 0 ) THEN
-!$omp parallel do default(shared) private(ir) firstprivate(isym)
-                      DO ir=1,nxxs
-                         psic_all(ir) = temppsic_all(rir(ir,isym))
-                      ENDDO
-!$omp end parallel do
-                   ENDIF
-                   CALL scatter_grid(exx_fft%dfftt,psic_all,psic_exx)
-#else
+
 !$omp parallel do default(shared) private(ir) firstprivate(isym)
                    DO ir=1,nrxxs
                       psic_exx(ir) = temppsic(rir(ir,isym))
                    ENDDO
 !$omp end parallel do
-#endif
+
 !$omp parallel do default(shared) private(ir) firstprivate(isym,ibnd,ikq)
                    DO ir=1,nrxxs
                       IF (index_sym(ikq) < 0 ) THEN
@@ -1097,14 +1052,10 @@ MODULE exx
     !
     IF (noncolin) THEN
        DEALLOCATE(temppsic_nc, psic_nc)
-#if defined(__MPI)
-       DEALLOCATE(temppsic_all_nc, psic_all_nc)
-#endif
+
     ELSE IF ( .not. gamma_only ) THEN
        DEALLOCATE(temppsic)
-#if defined(__MPI)
-       DEALLOCATE(temppsic_all, psic_all)
-#endif
+
     ENDIF
     !
     ! Each wavefunction in exxbuff is computed by a single pool, collect among 
@@ -1233,21 +1184,28 @@ MODULE exx
     !
     IMPLICIT NONE
     !
-    INTEGER                  :: lda, n, m
-    COMPLEX(DP)              :: psi(lda*npol,m)
-    COMPLEX(DP)              :: hpsi(lda*npol,m)
+    INTEGER, INTENT(IN)      :: lda, n, m
+    COMPLEX(DP) , INTENT(IN) :: psi(lda*npol,m)
+    COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
     TYPE(bec_type), OPTIONAL :: becpsi
+
     INTEGER :: i
-    !
+    
+    ! check for 
+
     IF ( (okvan.or.okpaw) .and. .not. present(becpsi)) &
        CALL errore('vexx','becpsi needed for US/PAW case',1)
+
+  
     CALL start_clock ('vexx')
     !
-    IF(negrp.gt.1)THEN
+    IF(negrp.gt.1) THEN
        CALL init_index_over_band(inter_egrp_comm,nbnd,m)
        !
        ! transform psi to the EXX data structure
        !
+       ! what does it change?
+       
        CALL transform_psi_to_exx(lda,n,m,psi)
        !
     END IF
@@ -1340,6 +1298,9 @@ MODULE exx
     INTEGER :: ijt, njt, jblock_start, jblock_end
     INTEGER :: index_start, index_end, exxtemp_index
     INTEGER :: ending_im
+
+
+    
     !
     ialloc = nibands(my_egrp_id+1)
     !
@@ -1379,7 +1340,6 @@ MODULE exx
        !
        ! calculate the 1/|r-r'| (actually, k+q+g) factor and place it in fac
        CALL g2_convolution_all(exx_fft%ngmt, exx_fft%gt, xkp, xkq, iq, current_k)
-       IF ( okvan .and..not.tqr ) CALL qvan_init (exx_fft%ngmt, xkq, xkp)
        !
        njt = nbnd / (2*jblock)
        if (mod(nbnd, (2*jblock)) .ne. 0) njt = njt + 1
@@ -1506,14 +1466,6 @@ MODULE exx
                 ! bring rho to G-space
                 !
                 !   >>>> add augmentation in REAL SPACE here
-                IF(okvan .and. tqr) THEN
-                   IF(jbnd>=jstart) &
-                        CALL addusxx_r(exx_fft,rhoc(:,ii), &
-                       _CX(becxx(ikq)%r(:,jbnd)), _CX(becpsi%r(:,ibnd)))
-                   IF(jbnd<jend) &
-                        CALL addusxx_r(exx_fft,rhoc(:,ii), &
-                       _CY(becxx(ikq)%r(:,jbnd+1)),_CX(becpsi%r(:,ibnd)))
-                ENDIF
                 !
                 CALL fwfft ('Custom', rhoc(:,ii), exx_fft%dfftt)
                 !   >>>> add augmentation in G SPACE here
@@ -1715,6 +1667,10 @@ MODULE exx
     INTEGER :: ialloc, ending_im
     INTEGER :: ijt, njt, jblock_start, jblock_end
     COMPLEX(DP), ALLOCATABLE :: exxtemp(:,:)
+
+    write(stdout,*) 'exx_grid_init',"COMPUTING K GENERIC", 1
+    stop
+
     !
     ialloc = nibands(my_egrp_id+1)
     !
@@ -2292,6 +2248,7 @@ MODULE exx
 
     CALL start_clock ('exxenergy')
 
+    
     IF(okvan) CALL allocate_bec_type( nkb, nbnd, becpsi)
     energy = 0._dp
 
@@ -4247,9 +4204,7 @@ END SUBROUTINE compute_becpsi
     !INTEGER, EXTERNAL :: find_current_k
     INTEGER :: recvcount(negrp)
     INTEGER :: displs(negrp)
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-#endif
+
     INTEGER :: requests(max_ibands+2,negrp)
     !
     INTEGER :: ipol, my_lda, lda_offset, count
@@ -4273,82 +4228,6 @@ END SUBROUTINE compute_becpsi
     END DO
     recvcount = lda_max_local*npol
     count = lda_max_local*npol
-#if defined (__MPI_NONBLOCKING)
-    IF ( type.eq.0 ) THEN
-       DO iegrp=1, negrp
-          displs(iegrp) = (iegrp-1)*(count*m)
-       END DO
-       DO iegrp=1, negrp
-          DO im=1, nibands(iegrp)
-             IF ( my_egrp_id.eq.(iegrp-1) ) THEN
-                DO j=1, negrp
-                   displs(j) = (j-1)*(count*m) + count*(ibands(im,iegrp)-1)
-                END DO
-             END IF
-#if defined(__MPI)
-             CALL MPI_IGATHERV( psi_gather(:, ibands(im,iegrp) ), &
-                  count, MPI_DOUBLE_COMPLEX, &
-                  psi_work, &
-                  recvcount, displs, MPI_DOUBLE_COMPLEX, &
-                  iegrp-1, &
-                  inter_egrp_comm, requests(im,iegrp), ierr )
-#endif
-          END DO
-       END DO
-
-    ELSE IF(type.eq.1) THEN
-#elif defined(__MPI)
-       CALL MPI_ALLGATHER( psi_gather, &
-            count*m, MPI_DOUBLE_COMPLEX, &
-            psi_work, &
-            count*m, MPI_DOUBLE_COMPLEX, &
-            inter_egrp_comm, ierr )
-#endif
-
-#if defined (__MPI_NONBLOCKING)
-    ELSE IF(type.eq.2) THEN !evc2
-
-       DO iegrp=1, negrp
-          displs(iegrp) = (iegrp-1)*(count*m)
-       END DO
-       DO iegrp=1, negrp
-          DO im=1, all_end(iegrp) - all_start(iegrp) + 1
-             !
-             IF(all_start(iegrp).eq.0) CYCLE
-             !
-             IF ( my_egrp_id.eq.(iegrp-1) ) THEN
-                DO j=1, negrp
-                   displs(j) = (j-1)*(count*m) + count*(im+all_start(iegrp)-2)
-                END DO
-             END IF
-#if defined(__MPI)
-             CALL MPI_IGATHERV( psi_gather(:, im+all_start(iegrp)-1 ), &
-                  count, MPI_DOUBLE_COMPLEX, &
-                  psi_work, &
-                  recvcount, displs, MPI_DOUBLE_COMPLEX, &
-                  iegrp-1, &
-                  inter_egrp_comm, requests(im,iegrp), ierr )
-#endif
-          END DO
-       END DO
-          
-    END IF
-    !
-    IF(type.eq.0)THEN
-       DO iegrp=1, negrp
-          DO im=1, nibands(iegrp)
-             CALL MPI_WAIT(requests(im,iegrp), istatus, ierr)
-          END DO
-       END DO
-    ELSEIF(type.eq.2)THEN
-       DO iegrp=1, negrp
-          DO im=1, all_end(iegrp) - all_start(iegrp) + 1
-             IF(all_start(iegrp).eq.0) CYCLE
-             CALL MPI_WAIT(requests(im,iegrp), istatus, ierr)
-          END DO
-       END DO
-    END IF
-#endif
     !
     !-------------------------------------------------------!
     !Communication Part 2
@@ -4399,26 +4278,7 @@ END SUBROUTINE compute_becpsi
           !
           ! send the message
           !
-#if defined(__MPI)
-          IF ( type.eq.0 ) THEN !psi or hpsi
-             CALL MPI_ISEND( comm_send(iproc+1,current_ik)%msg, &
-                  comm_send(iproc+1,current_ik)%size*npol*nibands(my_egrp_id+1), &
-                  MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+iproc*nproc_egrp+me_egrp, &
-                  intra_egrp_comm, request_send(iproc+1), ierr )
-          ELSE IF (type.eq.1) THEN !evc
-             CALL MPI_ISEND( comm_send(iproc+1,current_ik)%msg, &
-                  comm_send(iproc+1,current_ik)%size*npol*m, MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+iproc*nproc_egrp+me_egrp, &
-                  intra_egrp_comm, request_send(iproc+1), ierr )
-          ELSE IF (type.eq.2) THEN !evc2
-             CALL MPI_ISEND( comm_send(iproc+1,current_ik)%msg, &
-                  comm_send(iproc+1,current_ik)%size*npol*(all_end(my_egrp_id+1)-all_start(my_egrp_id+1)+1), &
-                  MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+iproc*nproc_egrp+me_egrp, &
-                  intra_egrp_comm, request_send(iproc+1), ierr )
-          END IF
-#endif
+
           !
        END IF
     END DO
@@ -4430,26 +4290,7 @@ END SUBROUTINE compute_becpsi
           !
           ! receive the message
           !
-#if defined(__MPI)
-          IF (type.eq.0) THEN !psi or hpsi
-             CALL MPI_IRECV( comm_recv(iproc+1,current_ik)%msg, &
-                  comm_recv(iproc+1,current_ik)%size*npol*nibands(my_egrp_id+1), &
-                  MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+me_egrp*nproc_egrp+iproc, &
-                  intra_egrp_comm, request_recv(iproc+1), ierr )
-          ELSE IF (type.eq.1) THEN !evc
-             CALL MPI_IRECV( comm_recv(iproc+1,current_ik)%msg, &
-                  comm_recv(iproc+1,current_ik)%size*npol*m, MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+me_egrp*nproc_egrp+iproc, &
-                  intra_egrp_comm, request_recv(iproc+1), ierr )
-          ELSE IF (type.eq.2) THEN !evc2
-             CALL MPI_IRECV( comm_recv(iproc+1,current_ik)%msg, &
-                  comm_recv(iproc+1,current_ik)%size*npol*(all_end(my_egrp_id+1)-all_start(my_egrp_id+1)+1), &
-                  MPI_DOUBLE_COMPLEX, &
-                  iproc, 100+me_egrp*nproc_egrp+iproc, &
-                  intra_egrp_comm, request_recv(iproc+1), ierr )
-          END IF
-#endif
+
           !
        END IF
     END DO
@@ -4458,12 +4299,8 @@ END SUBROUTINE compute_becpsi
     !
     DO iproc=0, nproc_egrp-1
        IF ( comm_recv(iproc+1,current_ik)%size.gt.0 ) THEN
-          !
-          ! wait for the message to be received
-          !
-#if defined(__MPI)
-          CALL MPI_WAIT(request_recv(iproc+1), istatus, ierr)
-#endif
+          
+
           !
           DO i=1, comm_recv(iproc+1,current_ik)%size
              ig = comm_recv(iproc+1,current_ik)%indices(i)
@@ -4496,16 +4333,7 @@ END SUBROUTINE compute_becpsi
           !
        END IF
     END DO
-    !
-    ! wait for everything to finish sending
-    !
-#if defined(__MPI)
-    DO iproc=0, nproc_egrp-1
-       IF ( comm_send(iproc+1,current_ik)%size.gt.0 ) THEN
-          CALL MPI_WAIT(request_send(iproc+1), istatus, ierr)
-       END IF
-    END DO
-#endif
+
     !
     ! deallocate arrays
     !
@@ -4766,19 +4594,14 @@ END SUBROUTINE compute_becpsi
     INTEGER                  :: nrxxs
     INTEGER                  :: request_send, request_recv
     INTEGER                  :: dest, sender, ierr, jnext, jnext_dest
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-#endif
+
     !
     nrxxs= exx_fft%dfftt%nnr
     !
     IF (ipair.lt.max_pairs) THEN
        !
        IF (ipair.gt.1) THEN
-#if defined(__MPI)
-          CALL MPI_WAIT(request_send, istatus, ierr)
-          CALL MPI_WAIT(request_recv, istatus, ierr)
-#endif
+
        END IF
        !
        sender = my_egrp_id + 1
@@ -4788,17 +4611,7 @@ END SUBROUTINE compute_becpsi
        dest = my_egrp_id - 1
        IF (dest.lt.0) dest = negrp - 1
        jnext_dest = egrp_pairs(2,ipair+1,dest+1)
-       !
-#if defined(__MPI)
-       CALL MPI_ISEND( exxbuff(:,:,jnext_dest), nrxxs*npol*nqs, &
-            MPI_DOUBLE_COMPLEX, dest, 101, inter_egrp_comm, request_send, ierr )
-#endif
-       !
-#if defined(__MPI)
-       CALL MPI_IRECV( exxbuff(:,:,jnext), nrxxs*npol*nqs, &
-            MPI_DOUBLE_COMPLEX, sender, 101, inter_egrp_comm, &
-            request_recv, ierr )
-#endif
+   
        !
     END IF
     !
@@ -4809,6 +4622,7 @@ END SUBROUTINE compute_becpsi
   !-----------------------------------------------------------------------
   SUBROUTINE result_sum (n, m, data)
   !-----------------------------------------------------------------------
+    !! does nothing in serial case
     USE parallel_include
     USE mp_exx,       ONLY : iexx_start, iexx_end, inter_egrp_comm, &
                                intra_egrp_comm, my_egrp_id, negrp, &
@@ -4819,91 +4633,10 @@ END SUBROUTINE compute_becpsi
 
     INTEGER, INTENT(in) :: n, m
     COMPLEX(DP), INTENT(inout) :: data(n,m)
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-    COMPLEX(DP), ALLOCATABLE :: recvbuf(:,:)
-    COMPLEX(DP) :: data_sum(n,m), test(negrp)
-    INTEGER :: im, iegrp, ibuf, i, j, nsending(m)
-    INTEGER :: ncontributing(m)
-    INTEGER :: contrib_this(negrp,m), displs(negrp,m)
 
-    INTEGER sendcount, sendtype, ierr, root, request(m)
-    INTEGER sendc(negrp), sendd(negrp)
-#endif
     !
     IF (negrp.eq.1) RETURN
     !
-#if defined(__MPI)
-    ! gather data onto the correct nodes
-    !
-    ALLOCATE( recvbuf( n*max_contributors, max(1,iexx_end-iexx_start+1) ) )
-    displs = 0
-    ibuf = 0
-    nsending = 0
-    contrib_this = 0
-    !
-    DO im=1, m
-       !
-       IF(contributed_bands(im,my_egrp_id+1)) THEN
-          sendcount = n
-       ELSE
-          sendcount = 0
-       END IF
-       !
-       root = band_roots(im)
-       !
-       IF(my_egrp_id.eq.root) THEN
-          !
-          ! determine the number of sending processors
-          !
-          ibuf = ibuf + 1
-          ncontributing(im) = 0
-          DO iegrp=1, negrp
-             IF(contributed_bands(im,iegrp)) THEN
-                ncontributing(im) = ncontributing(im) + 1
-                contrib_this(iegrp,im) = n
-                IF(iegrp.lt.negrp) displs(iegrp+1,im) = displs(iegrp,im) + n
-                nsending(im) = nsending(im) + 1
-             ELSE
-                contrib_this(iegrp,im) = 0
-                IF(iegrp.lt.negrp) displs(iegrp+1,im) = displs(iegrp,im)
-             END IF
-          END DO
-       END IF
-       !
-#if defined(__MPI_NONBLOCKING)
-       CALL MPI_IGATHERV(data(:,im), sendcount, MPI_DOUBLE_COMPLEX, &
-            recvbuf(:,max(1,ibuf)), contrib_this(:,im), &
-            displs(:,im), MPI_DOUBLE_COMPLEX, &
-            root, inter_egrp_comm, request(im), ierr)
-#else
-       CALL MPI_GATHERV(data(:,im), sendcount, MPI_DOUBLE_COMPLEX, &
-            recvbuf(:,max(1,ibuf)), contrib_this(:,im), &
-            displs(:,im), MPI_DOUBLE_COMPLEX, &
-            root, inter_egrp_comm, ierr)
-#endif
-       !
-    END DO
-    !
-#if defined(__MPI_NONBLOCKING)
-    DO im=1, m
-       CALL MPI_WAIT(request(im), istatus, ierr)
-    END DO
-#endif
-    !
-    ! perform the sum
-    !
-    DO im=iexx_istart(my_egrp_id+1), iexx_iend(my_egrp_id+1)
-       IF(im.eq.0)exit
-       data(:,im) = 0._dp
-       ibuf = im - iexx_istart(my_egrp_id+1) + 1
-       DO j=1, nsending(im)
-          DO i=1, n
-             data(i,im) = data(i,im) + recvbuf(i+n*(j-1),ibuf)
-          END DO
-       END DO
-    END DO
-#endif
     !
     !-----------------------------------------------------------------------
   END SUBROUTINE result_sum
@@ -4934,9 +4667,7 @@ END SUBROUTINE compute_becpsi
     INTEGER :: request_send(nproc_egrp,negrp), request_recv(nproc_egrp,negrp)
     INTEGER :: ierr
     INTEGER :: ipol
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-#endif
+
     !INTEGER, EXTERNAL :: find_current_k
     !
     current_ik = current_k
@@ -4966,14 +4697,7 @@ END SUBROUTINE compute_becpsi
                 ! send the message
                 !
                 tag = 0
-#if defined(__MPI)
-                CALL MPI_ISEND( comm_send_reverse(iproc+1,iegrp,current_ik)%msg, &
-                     comm_send_reverse(iproc+1,iegrp,current_ik)%size*npol*my_bands, &
-                     MPI_DOUBLE_COMPLEX, &
-                     iproc+(iegrp-1)*nproc_egrp, &
-                     tag, &
-                     intra_pool_comm, request_send(iproc+1,iegrp), ierr )
-#endif
+
                 !
              END IF
           END DO
@@ -4994,14 +4718,7 @@ END SUBROUTINE compute_becpsi
              !receive the message
              !
              tag = 0
-#if defined(__MPI)
-             CALL MPI_IRECV( comm_recv_reverse(iproc+1,current_ik)%msg(:,:,iexx_istart(iegrp)), &
-                  comm_recv_reverse(iproc+1,current_ik)%size*npol*recv_bands, &
-                  MPI_DOUBLE_COMPLEX, &
-                  iproc+(iegrp-1)*nproc_egrp, &
-                  tag, &
-                  intra_pool_comm, request_recv(iproc+1,iegrp), ierr )
-#endif
+
              !
           END IF
        END DO
@@ -5012,12 +4729,7 @@ END SUBROUTINE compute_becpsi
     DO iproc=0, nproc_egrp-1
        IF ( comm_recv_reverse(iproc+1,current_ik)%size.gt.0 ) THEN
           !
-#if defined(__MPI)
-          DO iegrp=1, negrp
-             IF ( iexx_istart(iegrp).le.0 ) CYCLE
-             CALL MPI_WAIT(request_recv(iproc+1,iegrp), istatus, ierr)
-          END DO
-#endif
+
           !
           DO i=1, comm_recv_reverse(iproc+1,current_ik)%size
              ig = comm_recv_reverse(iproc+1,current_ik)%indices(i)
@@ -5035,20 +4747,8 @@ END SUBROUTINE compute_becpsi
           !
        END IF
     END DO
-    !
-    ! wait for everything to finish sending
-    !
-#if defined(__MPI)
-    IF ( iexx_istart(my_egrp_id+1).gt.0 ) THEN
-       DO iproc=0, nproc_egrp-1
-          DO iegrp=1, negrp
-             IF ( comm_send_reverse(iproc+1,iegrp,current_ik)%size.gt.0 ) THEN
-                CALL MPI_WAIT(request_send(iproc+1,iegrp), istatus, ierr)
-             END IF
-          END DO
-       END DO
-    END IF
-#endif
+  
+
     !
     !-----------------------------------------------------------------------
   END SUBROUTINE transform_to_local
@@ -5064,9 +4764,7 @@ END SUBROUTINE compute_becpsi
     COMPLEX(DP), intent(inout) :: exxtemp(lda,jend-jstart+1)
     INTEGER, intent(in) :: ikq, lda, jstart, jend
     INTEGER :: jbnd, iegrp, ierr, request_exxbuff(jend-jstart+1)
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-#endif
+
 
     DO jbnd=jstart, jend
        !determine which band group has this value of exxbuff
@@ -5111,9 +4809,7 @@ END SUBROUTINE compute_becpsi
     COMPLEX(DP), intent(inout) :: exxtemp(lda*npol,jlength)
     INTEGER, intent(in) :: ikq, lda, jstart, jend, jlength
     INTEGER :: jbnd, iegrp, ierr, request_exxbuff(jend-jstart+1), ir
-#if defined(__MPI)
-    INTEGER :: istatus(MPI_STATUS_SIZE)
-#endif
+
     REAL(DP), ALLOCATABLE :: work(:,:)
 
     CALL start_clock ('comm_buff')
@@ -5135,6 +4831,8 @@ END SUBROUTINE compute_becpsi
        END IF
 
 #if defined(__MPI_NONBLOCKING)
+        ! this is a different version of MPI with non blocking 
+        ! so the check here
        CALL MPI_IBCAST(work(:,jbnd-jstart+1), &
             lda*npol, &
             MPI_DOUBLE_PRECISION, &

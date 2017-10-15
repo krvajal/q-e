@@ -1233,6 +1233,7 @@ subroutine xc (rho, ex, ec, vx, vc)
      vc = 0.0_DP
   endif
   !
+  
   return
 end subroutine xc
 !!!!!!!!!!!!!!SPIN

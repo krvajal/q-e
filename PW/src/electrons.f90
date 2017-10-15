@@ -88,6 +88,10 @@ SUBROUTINE electrons()
   fock0 = 0.D0
   fock1 = 0.D0
   IF (.NOT. exx_is_active () ) fock2 = 0.D0
+  IF (exx_is_active()) THEN
+    print *,  "EXX is active"
+    stop
+  ENDIF
   !
   !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   !%%%%%%%%%%%%%%%%%%%%  Iterate hybrid functional  %%%%%%%%%%%%%%%%%%%%%
@@ -137,12 +141,20 @@ SUBROUTINE electrons()
      ! ... Self-consistency loop. For hybrid functionals the exchange potential
      ! ... is calculated with the orbitals at previous step (none at first step)
      !
+     WRITE(stdout,*) "Electron scf"
+    !  stop
      CALL electrons_scf ( printout, exxen )
+     ! have a lot of side effects
+
      !
+     
      IF ( .NOT. dft_is_hybrid() ) RETURN
      !
      ! ... From now on: hybrid DFT only
      !
+     
+     
+     
      IF ( stopped_by_user .OR. .NOT. conv_elec ) THEN
         conv_elec=.FALSE.
         IF ( .NOT. first) THEN
@@ -157,11 +169,14 @@ SUBROUTINE electrons()
            CALL seqopn (iunres, 'restart_exx', 'unformatted', exst)
            WRITE (iunres) exxbuff
            CLOSE (unit=iunres, status='keep')
+        ELSE 
+            WRITE(stdout, * ) "Convergence of the electronic loop not achieved"
         END IF
         RETURN
      END IF
      !
      first =  first .AND. .NOT. exx_is_active ( )
+    
      !
      ! "first" is true if the scf step was performed without exact exchange
      !
@@ -172,12 +187,16 @@ SUBROUTINE electrons()
         ! Activate exact exchange, set orbitals used in its calculation,
         ! then calculate exchange energy (will be useful at next step)
         !
+        
         CALL exxinit()
         IF ( use_ace) THEN
+            print *, "Using ACE"
            fock2 = exxenergyace()
         ELSE
+            print *, "NOT Using ACE"
            fock2 = exxenergy2()
         ENDIF
+        stop
         exxen = 0.50d0*fock2 
         etot = etot - etxc 
         !
@@ -224,12 +243,12 @@ SUBROUTINE electrons()
         !
         dexx = fock1 - 0.5D0*(fock0+fock2)
         IF ( dexx < 0d0 ) THEN
-!           WRITE(stdout,'(5x,a,1e12.3)') "BEWARE: negative dexx:", dexx
-!           dexx = ABS(dexx)
-          WRITE( stdout, * ) "dexx:", dexx
-          CALL errore( 'electrons', 'dexx is negative! &
-           & Check that exxdiv_treatment is appropriate for the system,&
-           & or ecutfock may be too low', 1 )
+            !           WRITE(stdout,'(5x,a,1e12.3)') "BEWARE: negative dexx:", dexx
+            !           dexx = ABS(dexx)
+            WRITE( stdout, * ) "dexx:", dexx
+            CALL errore( 'electrons', 'dexx is negative! &
+            & Check that exxdiv_treatment is appropriate for the system,&
+            & or ecutfock may be too low', 1 )
         ENDIF
         !
         !   remove the estimate exchange energy exxen used in the inner SCF
@@ -280,7 +299,7 @@ SUBROUTINE electrons()
         RETURN
      END IF
      !
-  END DO
+  END DO ! end of sc iteration loop 
   !
   WRITE( stdout, 9120 ) iter
   FLUSH( stdout )
