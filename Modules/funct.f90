@@ -139,7 +139,7 @@ module funct
   !              "b3lp"   B3LYP(Slater*0.80+HF*0.20)     iexch=7
   !              "kzk"    Finite-size corrections        iexch=8
   !              "x3lp"   X3LYP(Slater*0.782+HF*0.218)   iexch=9
-  !
+  !              "kli"    KLI aproximation for EXX       iexch=10
   ! Correlation: "noc"    none                           icorr=0
   !              "pz"     Perdew-Zunger                  icorr=1 (default)
   !              "vwn"    Vosko-Wilk-Nusair              icorr=2
@@ -309,12 +309,12 @@ module funct
   real(DP):: finite_size_cell_volume = notset
   logical :: discard_input_dft = .false.
   !
-  integer, parameter:: nxc=8, ncc=10, ngcx=27, ngcc=12, nmeta=5, ncnl=6
+  integer, parameter:: nxc=9, ncc=10, ngcx=27, ngcc=12, nmeta=5, ncnl=6
   character (len=4) :: exc, corr, gradx, gradc, meta, nonlocc
   dimension :: exc (0:nxc), corr (0:ncc), gradx (0:ngcx), gradc (0:ngcc), &
                meta(0:nmeta), nonlocc (0:ncnl)
 
-  data exc  / 'NOX', 'SLA', 'SL1', 'RXC', 'OEP', 'HF', 'PB0X', 'B3LP', 'KZK' /
+  data exc  / 'NOX', 'SLA', 'SL1', 'RXC', 'OEP', 'HF', 'PB0X', 'B3LP', 'KZK', 'KLI' /
   data corr / 'NOC', 'PZ', 'VWN', 'LYP', 'PW', 'WIG', 'HL', 'OBZ', &
               'OBW', 'GL' , 'KZK' /
 
@@ -392,7 +392,11 @@ CONTAINS
     ! special cases : HF no GC part (nor LDA...) and no correlation by default
     else IF ('HF' .EQ. TRIM(dftout) ) THEN
        dft_defined = set_dft_values(5,0,0,0,0,0)
-       
+
+    ! special cases: KLI no GC part (nor LDA...) and no correlation by default   
+    else IF ("KLI" .EQ. TRIM(dftout)) THEN  
+       dft_defined = set_dft_values(10,0,0,0,0,0)    
+
     else if ('PBE' .EQ. TRIM(dftout) ) then
     ! special case : PBE
        dft_defined = set_dft_values(1,4,3,4,0,0)
@@ -650,28 +654,29 @@ CONTAINS
     return
   end subroutine set_dft_from_name
   !
+  
   integer function matching(dft, n, name)
-  implicit none
-  integer, intent(in):: n
-  character(len=*), intent(in):: name(0:n)
-  character(len=*), intent(in):: dft
-  logical, external :: matches
-  integer :: i
- 
-  matching = notset
-  do i = n, 0, -1
-     if (matches (name (i), trim(dft)) ) then
-        if ( matching == notset ) then
-           ! write(*, '("matches",i2,2X,A,2X,A)') i, name(i), trim(dft)
-           matching = i 
+    implicit none
+    integer, intent(in):: n
+    character(len=*), intent(in):: name(0:n)
+    character(len=*), intent(in):: dft
+    logical, external :: matches
+    integer :: i
+    
+    matching = notset
+    do i = n, 0, -1
+        if (matches (name (i), trim(dft)) ) then
+            if ( matching == notset ) then
+            ! write(*, '("matches",i2,2X,A,2X,A)') i, name(i), trim(dft)
+            matching = i 
         else
            write(*, '(2(2X,i2,2X,A))') i, trim(name(i)), &
                                    matching, trim(name(matching))
            call errore ('set_dft', 'two conflicting matching values', 1)
         end if
      endif
-  end do
-  if (matching == notset) matching = 0
+    end do
+    if (matching == notset) matching = 0
   !
   end function matching
   !
@@ -697,8 +702,8 @@ CONTAINS
        exx_fraction = 0.24_DP
        gau_parameter = 0.150_DP
     END IF
-    ! HF or OEP
-    IF ( iexch==4 .or. iexch==5 ) exx_fraction = 1.0_DP
+    ! HF or OEP or KLI
+    IF ( iexch==4 .or. iexch==5  .or. iexch == 10 ) exx_fraction = 1.0_DP
     ! B3LYP or B3LYP-VWN-1-RPA
     IF ( iexch == 7 ) exx_fraction = 0.2_DP
     ! X3LYP
@@ -1148,19 +1153,22 @@ subroutine xc (rho, ex, ec, vx, vc)
      call slater1(rs, ex, vx)
   ELSEIF (iexch == 3) THEN         !  'rxc'
      CALL slater_rxc(rs, ex, vx)
-  ELSEIF ((iexch == 4).or.(iexch==5)) THEN  ! 'oep','hf'
-     IF (exx_started) then
+  ELSEIF ( (iexch == 4) & ! 'oep'
+          & .or. (iexch == 5) & ! 'hf'
+          & .or. (iexch == 9) & ! 'kli'
+         ) THEN  
+     IF (exx_started) THEN
         ex = 0.0_DP
         vx = 0.0_DP
-     else
+     ELSE
         call slater (rs, ex, vx)
-     endif
+     ENDIF
   ELSEIF (iexch == 6) THEN         !  'pb0x'
      CALL slater(rs, ex, vx)
      if (exx_started) then
         ex = (1.0_DP - exx_fraction) * ex 
         vx = (1.0_DP - exx_fraction) * vx 
-     end if
+     END IF
   ELSEIF (iexch == 7) THEN         !  'B3LYP'
      CALL slater(rs, ex, vx)
      if (exx_started) then
