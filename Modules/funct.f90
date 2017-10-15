@@ -395,7 +395,7 @@ CONTAINS
 
     ! special cases: KLI no GC part (nor LDA...) and no correlation by default   
     else IF ("KLI" .EQ. TRIM(dftout)) THEN  
-       dft_defined = set_dft_values(10,0,0,0,0,0)    
+       dft_defined = set_dft_values(10,0,0,0,0,0)
 
     else if ('PBE' .EQ. TRIM(dftout) ) then
     ! special case : PBE
